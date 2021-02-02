@@ -1,21 +1,17 @@
 import React, {Component} from "react";
-import {Dimensions, PixelRatio, Text, TextInput, TouchableHighlight, View} from "react-native";
-import PropTypes from "prop-types";
-import Svg from "react-native-svg";
-import IconLib from "../../resources/svg/IconLib";
 import {isEmpty} from "./common";
+import {ValidateUtil} from "./ValidateUtil";
 
-export default class BaseWidget extends Component{
+export default class BaseWidget extends Component {
 
     constructor(props) {
         super(props);
         this.state = {
             value: props.value,
             hasError: false,
-            error: null
+            errorMsg: null
         };
     }
-
 
     /**
      * 私有方法 设置值
@@ -25,7 +21,7 @@ export default class BaseWidget extends Component{
     _setValue(value) {
         let {setValue} = this.props;
         this.setState({value: value}, () => {
-            setValue(value);
+            setValue && setValue(value);
         })
     }
 
@@ -43,8 +39,18 @@ export default class BaseWidget extends Component{
      * @returns {boolean}
      */
     validate() {
-        let error = null, hasError = false;
-        this.setState({hasError: hasError, error: error});
+        let errorMsg = null, hasError = false;
+        let {value} = this.state;
+        if (this.props.validations) {
+            for (let validation of this.props.validations) {
+                errorMsg = ValidateUtil[validation].call(null, value);
+                if (!isEmpty(errorMsg)) {
+                    hasError = true;
+                    break;
+                }
+            }
+        }
+        this.setState({hasError: hasError, errorMsg: errorMsg});
         return hasError;
     }
 

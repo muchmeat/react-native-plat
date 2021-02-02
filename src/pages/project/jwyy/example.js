@@ -16,7 +16,7 @@ import Button from "../../../base/Button";
 
 class example extends Component {
     constructor(props) {
-        super(props);
+    super(props);
         this.state = {};
     }
 
@@ -39,7 +39,7 @@ class example extends Component {
                 type: "InputWidget",
                 name: "text",
                 label: "标题1",
-                validate: 'userName',
+                validations: 'userName',
                 placeholder: '请输入用户名text'
             },
             {
@@ -70,7 +70,8 @@ class example extends Component {
                 <Form ref={(ref) => {
                     this.form = ref;
                 }}
-                      items={items}/>
+                      items={items}
+                />
                 <Button text={"确定"}
                         onClick={() => {
                             let hasError = this.form.validate();
