@@ -1,6 +1,7 @@
 import React, {Component} from "react";
 import {isEmpty} from "./common";
 import {ValidateUtil} from "./ValidateUtil";
+import PropTypes from "prop-types";
 
 export default class BaseWidget extends Component {
 
@@ -12,6 +13,14 @@ export default class BaseWidget extends Component {
             errorMsg: null
         };
     }
+
+    static propTypes = {
+        validations: PropTypes.oneOfType([
+            PropTypes.array,
+            PropTypes.func
+        ]),
+        setValue: PropTypes.func.isRequired
+    };
 
     /**
      * 私有方法 设置值
@@ -41,7 +50,11 @@ export default class BaseWidget extends Component {
     validate() {
         let errorMsg = null, hasError = false;
         let {value} = this.state;
-        if (this.props.validations) {
+        if (typeof this.props.validations === "function") {
+            let msg = this.props.validations(value);
+            hasError = msg.hasError;
+            errorMsg = msg.errorMsg;
+        } else if (Object.prototype.toString.call(this.props.validations) === "[object Array]") {
             for (let validation of this.props.validations) {
                 errorMsg = ValidateUtil[validation].call(null, value);
                 if (!isEmpty(errorMsg)) {

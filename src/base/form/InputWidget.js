@@ -6,7 +6,7 @@ import IconLib from "../../resources/svg/IconLib";
 import {isEmpty} from "./common";
 import BaseWidget from "./BaseWidget";
 
-export default class InputWidget extends BaseWidget{
+export default class InputWidget extends BaseWidget {
 
     constructor(props) {
         super(props)
@@ -28,14 +28,13 @@ export default class InputWidget extends BaseWidget{
     static defaultProps = {
         value: null,
         isMaybe: true,//默认非必填
-        hasBorder: true,//默认存在底边线
+        hasBorder: false,//默认存在底边线
         keyboardType: 'default'
     };
 
-
     render() {
         let {label, placeholder, keyboardType, hasBorder} = this.props;
-        let {value, hasError, error} = this.state;
+        let {value, hasError, errorMsg} = this.state;
         return <View style={styles.paddingContainer}>
             <View style={[styles.rowContainer, hasBorder ? styles.borderBottom : null]}>
                 <View style={styles.leftContainer}>
@@ -43,20 +42,22 @@ export default class InputWidget extends BaseWidget{
                 </View>
                 <View style={styles.rightContainer}>
                     <View style={styles.rightRowContainer}>
-                        <TextInput style={[styles.label, isEmpty(value) ? {color: "#888888"} : {color: "#222222"}]}
+                        <TextInput style={[styles.text, isEmpty(value) ? {color: "#888888"} : {color: "#222222"}]}
                                    value={value}
                                    keyboardType={keyboardType}
-                                   underlineColorAndroid="transparent"
+                                   // underlineColorAndroid="transparent"
                                    onChangeText={(text) => {
                                        this._setValue(text)
                                    }}
-                                   placeholder={placeholder}/>
+                                   placeholder={placeholder}
+                        />
                         {
                             value ?
                                 <TouchableHighlight activeOpacity={0.8} underlayColor='transparent'
                                                     onPress={() => {
                                                         this._setValue(null)
-                                                    }}>
+                                                    }}
+                                >
                                     <View style={styles.clear.svgContainer}>
                                         <Svg height={styles.clear.svg.height} width={styles.clear.svg.width}
                                              viewBox="0 0 1024 1024">{IconLib.IC_CLEAR}</Svg>
@@ -75,7 +76,7 @@ export default class InputWidget extends BaseWidget{
                                 <View style={styles.error.textContainer}>
                                     <Text accessibilityLiveRegion="polite"
                                           style={styles.error.text}>
-                                        {error}
+                                        {errorMsg}
                                     </Text>
                                 </View>
                             </View> : null
@@ -105,6 +106,7 @@ const styles = Object.freeze({
         // backgroundColor: "#5de4ff"
     },
     label: {flex: 1, fontSize: 16, color: "#444444"},
+    text: {flex: 1, fontSize: 16, color: "#444444", textAlign: "right"},
     rightContainer: {
         flex: 1,
         // backgroundColor: "#fc5eff"

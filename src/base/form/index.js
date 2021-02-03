@@ -31,10 +31,8 @@ export default class Form extends Component {
      */
     validate() {
         let hasError = false;
-        console.warn("validate")
         this.state.items.map((item, index) => {
             let cpt = this[item.name];
-            console.warn(cpt)
             if (cpt) {
                 let validateHasError = cpt.validate();
                 if (validateHasError) {
@@ -60,7 +58,7 @@ export default class Form extends Component {
      * @private
      */
     _generateForms() {
-        let components = this.state.items.map((item, index) => {
+        return this.state.items.map((item, index) => {
             let Cpt = ComponentFactory.getComponent(item);
             if (Cpt) {
                 return (
@@ -76,12 +74,11 @@ export default class Form extends Component {
                 )
             }
         });
-        return components;
     }
 
 
     render() {
-        return <View style={{flex: 1, backgroundColor: "#ffc64f"}}>
+        return <View style={{flex: 1}}>
             {this._generateForms()}
         </View>
     }

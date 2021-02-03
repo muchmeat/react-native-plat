@@ -16,7 +16,7 @@ import Button from "../../../base/Button";
 
 class example extends Component {
     constructor(props) {
-    super(props);
+        super(props);
         this.state = {};
     }
 
@@ -39,30 +39,25 @@ class example extends Component {
                 type: "InputWidget",
                 name: "text",
                 label: "标题1",
-                validations: 'userName',
+                validations: (vv) => {
+                    return {hasError: true, errorMsg: "errorMsg"}
+                },
                 placeholder: '请输入用户名text'
             },
             {
                 type: "InputWidget",
                 name: "text2",
                 label: "标题2",
-                icon: 'userName',
-                placeholder: '请输入用户名text'
+                value: "",
+                placeholder: '请输入用户名text2'
             },
             {
-                type: "InputItem",
-                name: "username",
-                label: "用户名",
-                icon: 'userName',
-                placeholder: '请输入用户名'
-            },
-            {
-                type: "InputItem",
-                name: "password",
-                label: "密码",
-                icon: 'password',
-                placeholder: '请输入密码'
-            },
+                type: "InputWidget",
+                name: "text3",
+                label: "标题3",
+                validations: ["isNotNull", "isInteger"],
+                placeholder: '请输入用户名text3'
+            }
         ];
 
         return (
