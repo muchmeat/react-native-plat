@@ -13,16 +13,20 @@ import IconLib from './resources/svg/IconLib';
 
 import Splash from './pages/Splash';
 import Login from './pages/Login';
+
+import AGSMap from './pages/project/AGSMap';
+
+
 import Example from './pages/project/jwyy/example';
 import Example2 from './pages/project/jwyy/example2';
 import Example3 from './pages/project/jwyy/example3';
 
 
 const Tabs = createBottomTabNavigator({
-    'Home': {
+    'Form': {
         screen: Example,
         navigationOptions: {
-            tabBarLabel: '首页', // tabBar显示的文字
+            tabBarLabel: '表单', // tabBar显示的文字
             tabBarIcon: ({focused}) => { // tabBar显示的图标
                 if (focused) {
                     return <Svg height={18} width={18} viewBox="0 0 1024 1024">{IconLib.IC_MAINPAGE2}</Svg>
@@ -32,10 +36,10 @@ const Tabs = createBottomTabNavigator({
             }
         }
     },
-    'Page': {
-        screen: Example2,
+    'Map': {
+        screen: AGSMap,
         navigationOptions: {
-            tabBarLabel: '通讯录', // tabBar显示的文字
+            tabBarLabel: '地图', // tabBar显示的文字
             tabBarIcon: ({focused}) => { // tabBar显示的图标
                 if (focused) {
                     return <Svg height={18} width={18} viewBox="0 0 1024 1024">{IconLib.IC_DWGL1}</Svg>
@@ -57,23 +61,10 @@ const Tabs = createBottomTabNavigator({
                 }
             }
         }
-    },
-    'AnalysisAndJudgment': {
-        screen: Example,
-        navigationOptions: {
-            tabBarLabel: '分析研判', // tabBar显示的文字
-            tabBarIcon: ({focused}) => { // tabBar显示的图标
-                if (focused) {
-                    return <Svg height={22} width={22} viewBox="0 0 1024 1024">{IconLib.FXYP_CHECKED}</Svg>
-                } else {
-                    return <Svg height={22} width={22} viewBox="0 0 1024 1024">{IconLib.FXYP_UNCHECK}</Svg>
-                }
-            }
-        }
     }
 }, {
     headerMode: 'screen',
-    initialRouteName: 'Home',
+    initialRouteName: 'Form',
     swipeEnabled: false,
     // tabBarPosition: 'bottom',
     tabBarOptions: {

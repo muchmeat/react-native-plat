@@ -14,7 +14,6 @@
     "axios": "^0.21.0",
     "react": "16.13.1",
     "react-native": "0.63.4",
-    "react-native-charts-wrapper": "^0.5.7",
     "react-native-elements": "1.0.0",
     "react-native-gesture-handler": "^1.9.0",
     "react-native-reanimated": "^1.13.2",
@@ -29,7 +28,7 @@
     "react-redux": "^7.2.2",
     "redux": "^4.0.5",
     "redux-thunk": "^2.3.0",
-    "prop-types": "latest"
+    "prop-types": "15.7.2"
   },
   "devDependencies": {
     "@babel/core": "^7.12.9",
