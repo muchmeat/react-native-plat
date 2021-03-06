@@ -198,12 +198,9 @@ android {
 }
 
 dependencies {
-//    implementation project(':react-native-charts-wrapper')
-
-//    implementation 'com.esri.arcgisruntime:arcgis-android:100.10.0'
 
     implementation fileTree(dir: "libs", include: ['*.jar', '*.aar'])
-    implementation fileTree(dir: "libs/arcGIS", include: ['arcgis-android-100.4.0.aar'])
+    implementation fileTree(dir: "libs/arcGIS", include: ['arcgis-android-100.10.0.aar'])
     //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"  // From node_modules
 
