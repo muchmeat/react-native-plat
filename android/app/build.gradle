@@ -185,6 +185,16 @@ android {
         pickFirst 'lib/armeabi-v7a/libc++_shared.so'
         pickFirst 'lib/x86_64/libc++_shared.so'
     }
+
+//    arcGIS
+//    buildFeatures {
+//        viewBinding true
+//    }
+
+//AS 3.5.2 for buildFeatures
+    dataBinding {
+        enabled = true
+    }
 }
 
 dependencies {
@@ -193,6 +203,7 @@ dependencies {
 //    implementation 'com.esri.arcgisruntime:arcgis-android:100.10.0'
 
     implementation fileTree(dir: "libs", include: ['*.jar', '*.aar'])
+    implementation fileTree(dir: "libs/arcGIS", include: ['arcgis-android-100.4.0.aar'])
     //noinspection GradleDynamicVersion
     implementation "com.facebook.react:react-native:+"  // From node_modules
 
