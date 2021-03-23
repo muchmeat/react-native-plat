@@ -58,31 +58,28 @@ public class AGSMapManager extends SimpleViewManager<AGSMapView> {
     public void receiveCommand(AGSMapView root, int commandId, @Nullable ReadableArray args) {
         switch (commandId) {
             case COMMAND_ZOOM_IN: {
+                mAGSMapView.zoomIn();
             }
             break;
             case COMMAND_ZOOM_OUT: {
+                mAGSMapView.zoomOut();
             }
             break;
             case COMMAND_ADD_MARKER: {
                 ReadableType readableType = Objects.requireNonNull(args).getType(0);
-                if (readableType.equals(ReadableType.Array)) {
-//                    mAGSMapView.addMarkers(Objects.requireNonNull(args).getArray(0));
-                } else {
+                mAGSMapView.addMarker(Objects.requireNonNull(args).getMap(0));
+//                if (readableType.equals(ReadableType.Array)) {
+//                    mAGSMapView.addMarker(Objects.requireNonNull(args).getArray(0));
+//                } else {
 //                    mAGSMapView.addMarker(Objects.requireNonNull(args).getMap(0));
-                }
+//                }
             }
             break;
             case COMMAND_ADD_POLYLINE: {
-                ReadableType readableType = Objects.requireNonNull(args).getType(0);
-                if (readableType.equals(ReadableType.Array)) {
-//                    mAGSMapView.addPolyline(Objects.requireNonNull(args).getArray(0));
-                }
+                mAGSMapView.addPolyline(Objects.requireNonNull(args).getMap(0));
             }
             case COMMAND_ADD_POLYGON: {
-                ReadableType readableType = Objects.requireNonNull(args).getType(0);
-                if (readableType.equals(ReadableType.Array)) {
-//                    mAGSMapView.addPolygon(Objects.requireNonNull(args).getArray(0));
-                }
+                mAGSMapView.addPolygon(Objects.requireNonNull(args).getMap(0));
             }
             case COMMAND_ADD_CIRCLE: {
                 ReadableType readableType = Objects.requireNonNull(args).getType(0);
