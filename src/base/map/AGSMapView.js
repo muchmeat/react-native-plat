@@ -18,30 +18,38 @@ export default class AGSMapView extends Component {
         circle: PropTypes.object,
     };
 
-    // UIDispatch = (command, params = []) => {
-    //     UIManager.dispatchViewManagerCommand(
-    //         findNodeHandle(this.mineMapView),
-    //         UIManager[this.ManagerName].Commands[command],
-    //         [params]
-    //     );
-    // };
-    //
-    // _addMarker = (params) => {
-    //     this.UIDispatch('addMarker', params);
-    // };
-    //
-    // _addPolyline = (params) => {
-    //     this.UIDispatch('addPolyline', params);
-    // };
-    //
-    // _addPolygon = (params) => {
-    //     this.UIDispatch('addPolygon', params);
-    // };
-    //
-    // _addCircle = (params) => {
-    //     this.UIDispatch('addCircle', params);
-    // };
-    //
+    UIDispatch = (command, params = []) => {
+        UIManager.dispatchViewManagerCommand(
+            findNodeHandle(this.AGSMapView),
+            UIManager[this.ManagerName].Commands[command],
+            [params]
+        );
+    };
+
+    zoomIn = () => {
+        this.UIDispatch('zoomIn');
+    };
+
+    zoomOut = () => {
+        this.UIDispatch('zoomOut');
+    };
+
+    addMarker = (params) => {
+        this.UIDispatch('addMarker', params);
+    };
+
+    addPolyline = (params) => {
+        this.UIDispatch('addPolyline', params);
+    };
+
+    addPolygon = (params) => {
+        this.UIDispatch('addPolygon', params);
+    };
+
+    addCircle = (params) => {
+        this.UIDispatch('addCircle', params);
+    };
+
     // _mapReadyCallback = () => {
     //     this._addMarker(this.props.marker);
     //     this._addPolyline(this.props.polyline);
