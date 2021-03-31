@@ -96,51 +96,51 @@ public class TDTLayerUtil {
         Envelope mainEnvelope;
         try {
             switch (layerType) {
-                case TIANDITU_VECTOR_MERCATOR:
+                case TDT_VECTOR_MERCATOR:
                     type = "vec";
                     tilematrixset = "w";
                     break;
-                case TIANDITU_VECTOR_MERCATOR_LABLE:
+                case TDT_VECTOR_MERCATOR_LABEL:
                     type = "cva";
                     tilematrixset = "w";
                     break;
-                case TIANDITU_VECTOR_2000:
+                case TDT_VECTOR_2000:
                     type = "vec";
                     tilematrixset = "c";
                     break;
-                case TIANDITU_VECTOR_2000_LABLE:
+                case TDT_VECTOR_2000_LABEL:
                     type = "cva";
                     tilematrixset = "c";
                     break;
-                case TIANDITU_IMAGE_MERCATOR:
+                case TDT_IMAGE_MERCATOR:
                     type = "img";
                     tilematrixset = "w";
                     break;
-                case TIANDITU_IMAGE_MERCATOR_LABLE:
+                case TDT_IMAGE_MERCATOR_LABEL:
                     type = "cia";
                     tilematrixset = "w";
                     break;
-                case TIANDITU_IMAGE_2000:
+                case TDT_IMAGE_2000:
                     type = "img";
                     tilematrixset = "c";
                     break;
-                case TIANDITU_IMAGE_2000_LABLE:
+                case TDT_IMAGE_2000_LABEL:
                     type = "cia";
                     tilematrixset = "c";
                     break;
-                case TIANDITU_TERRAIN_MERCATOR:
+                case TDT_TERRAIN_MERCATOR:
                     type = "ter";
                     tilematrixset = "w";
                     break;
-                case TIANDITU_TERRAIN_MERCATOR_LABLE:
+                case TDT_TERRAIN_MERCATOR_LABEL:
                     type = "cta";
                     tilematrixset = "w";
                     break;
-                case TIANDITU_TERRAIN_2000:
+                case TDT_TERRAIN_2000:
                     type = "ter";
                     tilematrixset = "c";
                     break;
-                case TIANDITU_TERRAIN_2000_LABLE:
+                case TDT_TERRAIN_2000_LABEL:
                     type = "cta";
                     tilematrixset = "c";
                     break;
@@ -203,34 +203,34 @@ public class TDTLayerUtil {
         /**
          * 天地图矢量墨卡托投影地图服务
          */
-        TIANDITU_VECTOR_MERCATOR,
-        TIANDITU_VECTOR_MERCATOR_LABLE,
+        TDT_VECTOR_MERCATOR,
+        TDT_VECTOR_MERCATOR_LABEL,
         /**
          * 天地图矢量2000地图服务
          */
-        TIANDITU_VECTOR_2000,
-        TIANDITU_VECTOR_2000_LABLE,
+        TDT_VECTOR_2000,
+        TDT_VECTOR_2000_LABEL,
 
         /**
          * 天地图影像墨卡托地图服务
          */
-        TIANDITU_IMAGE_MERCATOR,
-        TIANDITU_IMAGE_MERCATOR_LABLE,
+        TDT_IMAGE_MERCATOR,
+        TDT_IMAGE_MERCATOR_LABEL,
 
         /**
          * 天地图影像2000地图服务
          */
-        TIANDITU_IMAGE_2000,
-        TIANDITU_IMAGE_2000_LABLE,
+        TDT_IMAGE_2000,
+        TDT_IMAGE_2000_LABEL,
         /**
          * 天地图地形墨卡托地图服务
          */
-        TIANDITU_TERRAIN_MERCATOR,
-        TIANDITU_TERRAIN_MERCATOR_LABLE,
+        TDT_TERRAIN_MERCATOR,
+        TDT_TERRAIN_MERCATOR_LABEL,
         /**
          * 天地图地形2000地图服务
          */
-        TIANDITU_TERRAIN_2000,
-        TIANDITU_TERRAIN_2000_LABLE,
+        TDT_TERRAIN_2000,
+        TDT_TERRAIN_2000_LABEL,
     }
 }

@@ -14,14 +14,16 @@ public class AGSMapPackage implements ReactPackage {
 
     @Override
     public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
-        return Collections.emptyList();
+        List<NativeModule> modules = new ArrayList<>();
+        modules.add(new AGSMapModule(reactContext));
+        return modules;
     }
 
     @Override
     public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
-        List<ViewManager> modules = new ArrayList<>();
-        modules.add(new AGSMapManager());
-        return modules;
+        List<ViewManager> managers = new ArrayList<>();
+        managers.add(new AGSMapManager());
+        return managers;
     }
 
 }

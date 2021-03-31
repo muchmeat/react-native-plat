@@ -1,8 +1,17 @@
-import {findNodeHandle, requireNativeComponent, UIManager} from "react-native";
+import {
+    findNodeHandle,
+    requireNativeComponent,
+    UIManager,
+    NativeModules,
+    Text,
+    TouchableOpacity,
+    View
+} from "react-native";
 import React, {Component} from "react";
 import PropTypes from "prop-types";
 
 const MapView = requireNativeComponent("AGSMapManager");
+const AGSMapModule = NativeModules.AGSMapModule;
 
 export default class AGSMapView extends Component {
 
@@ -12,10 +21,11 @@ export default class AGSMapView extends Component {
     }
 
     static propTypes = {
-        marker: PropTypes.arrayOf(PropTypes.object),
-        polyline: PropTypes.arrayOf(PropTypes.object),
-        polygon: PropTypes.arrayOf(PropTypes.object),
-        circle: PropTypes.object,
+        initialMapCenter: PropTypes.arrayOf(PropTypes.object)
+    };
+
+    static defaultProps = {
+        initialMapCenter: []
     };
 
     UIDispatch = (command, params = []) => {
@@ -34,6 +44,18 @@ export default class AGSMapView extends Component {
         this.UIDispatch('zoomOut');
     };
 
+    location = () => {
+        this.UIDispatch('location');
+    };
+
+    changeBaseMap = (params) => {
+        this.UIDispatch('changeBaseMap', params);
+    };
+
+    addGeometry = (params) => {
+        this.UIDispatch('addGeometry', params);
+    };
+
     addMarker = (params) => {
         this.UIDispatch('addMarker', params);
     };
@@ -50,6 +72,42 @@ export default class AGSMapView extends Component {
         this.UIDispatch('addCircle', params);
     };
 
+    drawPoint = () => {
+        AGSMapModule.drawPoint(findNodeHandle(this.AGSMapView))
+    };
+
+    drawMultiPoint = () => {
+        AGSMapModule.drawMultiPoint(findNodeHandle(this.AGSMapView))
+    };
+
+    drawFreeHandPolygon = () => {
+        AGSMapModule.drawFreeHandPolygon(findNodeHandle(this.AGSMapView))
+    };
+
+    drawPolygon = () => {
+        AGSMapModule.drawPolygon(findNodeHandle(this.AGSMapView))
+    };
+
+    drawPolyline = () => {
+        AGSMapModule.drawPolyline(findNodeHandle(this.AGSMapView))
+    };
+
+    drawFreeHandLine = () => {
+        AGSMapModule.drawFreeHandLine(findNodeHandle(this.AGSMapView))
+    };
+
+    drawRectangle = () => {
+        AGSMapModule.drawRectangle(findNodeHandle(this.AGSMapView))
+    };
+
+    drawStop = (callBack) => {
+        AGSMapModule.drawStop(findNodeHandle(this.AGSMapView), (res) => {
+            if(callBack){
+                callBack(res)
+            }
+        })
+    };
+
     // _mapReadyCallback = () => {
     //     this._addMarker(this.props.marker);
     //     this._addPolyline(this.props.polyline);
@@ -64,7 +122,7 @@ export default class AGSMapView extends Component {
 
     render() {
         return <MapView ref={(ref) => this.AGSMapView = ref}
-                        style={{flex: 1}}
-        />
+                        {...this.props}
+            />
     }
 }
