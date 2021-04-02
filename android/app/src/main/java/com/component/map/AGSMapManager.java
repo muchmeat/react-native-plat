@@ -111,6 +111,10 @@ public class AGSMapManager extends SimpleViewManager<AGSMapView> {
                 root.center();
                 return;
             }
+            case COMMAND_LOCATION: {
+                root.location();
+                return;
+            }
 //            case COMMAND_DRAW_POINT: {
 ////                drawPoint();
 //                root.drawPoint();

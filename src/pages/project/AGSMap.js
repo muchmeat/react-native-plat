@@ -10,7 +10,9 @@ import {
     Text
 } from 'react-native';
 import {connect} from 'react-redux';// 引入connect函数
+import Svg from 'react-native-svg';
 import AGSMapView from "../../base/map/AGSMapView";
+import IconLib from "../../resources/svg/IconLib";
 
 class AGSMap extends Component {
     constructor(props) {
@@ -34,12 +36,14 @@ class AGSMap extends Component {
     render() {
         return <View style={{flex: 1}}>
             <AGSMapView style={{flex: 1}}
-                        ref={(ref) => this.map = ref}/>
+                        ref={(ref) => this.map = ref}
+
+            />
             <TouchableOpacity onPress={() => {
                 this.map.zoomIn();
             }} style={{
                 backgroundColor: "#70e9ff",
-                position:"absolute",
+                position: "absolute",
                 width: 20,
                 height: 20,
                 top: 10,
@@ -51,7 +55,7 @@ class AGSMap extends Component {
                 this.map.zoomOut();
             }} style={{
                 backgroundColor: "#bcff80",
-                position:"absolute",
+                position: "absolute",
                 width: 20,
                 height: 20,
                 top: 35,
@@ -61,16 +65,64 @@ class AGSMap extends Component {
             </TouchableOpacity>
 
             <TouchableOpacity onPress={() => {
-                this.map.addMarker({});
+                this.map.addMarker({
+                    "type": "Feature",
+                    "properties": {},
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [
+                            118.42643737792969,
+                            31.34923901780546
+                        ]
+                    }
+                });
             }} style={{
                 backgroundColor: "#ff3844",
-                position:"absolute",
+                position: "absolute",
                 width: 20,
                 height: 20,
                 top: 100,
                 right: 10
             }}><Text>点</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => {
+                let geoJson =
+                    {
+                        "type": "Feature",
+                        "properties": {
+                            name: "莲塘新村"
+                        },
+                        "geometry": {
+                            "type": "LineString",
+                            "coordinates": [
+                                [
+                                    118.36850166320801,
+                                    31.3734800138603
+                                ],
+                                [
+                                    118.36855530738829,
+                                    31.372344143074773
+                                ],
+                                [
+                                    118.37855530738829,
+                                    31.382344143074773
+                                ]
+                            ]
+                        }
+                    };
+                this.map.addPolyline(geoJson);
+            }} style={{
+                backgroundColor: "#ff74df",
+                position: "absolute",
+                width: 20,
+                height: 20,
+                top: 130,
+                right: 10
+            }}>
+                <Text>线</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity onPress={() => {
                 let geoJson =
                     {
@@ -145,12 +197,147 @@ class AGSMap extends Component {
                 this.map.addPolygon(geoJson2);
             }} style={{
                 backgroundColor: "#8bffa9",
-                position:"absolute",
+                position: "absolute",
                 width: 20,
                 height: 20,
-                top: 130,
+                top: 160,
                 right: 10
-            }}><Text>面</Text>
+            }}>
+                <Text>面</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => {
+                let circleParams = {"center": [118.43643737792969, 31.35923901780546], "radius": 500};
+                this.map.addCircle(circleParams);
+            }} style={{
+                backgroundColor: "#9fbbff",
+                position: "absolute",
+                width: 20,
+                height: 20,
+                top: 190,
+                right: 10
+            }}>
+                <Text>圆</Text>
+            </TouchableOpacity>
+
+            {/*左*/}
+            <TouchableOpacity onPress={() => {
+                this.map.drawPoint();
+            }} style={{
+                backgroundColor: "#70e9ff",
+                position: "absolute",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 30,
+                height: 30,
+                borderRadius: 15,
+                top: 10,
+                left: 10
+            }}>
+                <Text>点</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => {
+                this.map.drawPolyline();
+            }} style={{
+                backgroundColor: "#ff9d66",
+                position: "absolute",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 30,
+                height: 30,
+                borderRadius: 15,
+                top: 50,
+                left: 10
+            }}>
+                <Text>线</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => {
+                this.map.drawPolygon();
+            }} style={{
+                backgroundColor: "#bb5eff",
+                position: "absolute",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 30,
+                height: 30,
+                borderRadius: 15,
+                top: 90,
+                left: 10
+            }}>
+                <Text>面</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => {
+                this.map.drawStop((res) => {
+                    console.warn(res)
+                    this.map.addGeometry({geometry: res})
+                });
+            }} style={{
+                backgroundColor: "#a2ff77",
+                position: "absolute",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 30,
+                height: 30,
+                borderRadius: 15,
+                top: 130,
+                left: 10
+            }}>
+                <Text>stop</Text>
+            </TouchableOpacity>
+
+            {/*下*/}
+            <TouchableOpacity onPress={() => {
+                this.map.location();
+            }} style={{
+                backgroundColor: "#FFF",
+                position: "absolute",
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                alignItems: "center",
+                justifyContent: "center",
+                bottom: 10,
+                right: 10
+            }}>
+                <Svg height={20} width={20} viewBox="0 0 1024 1024">
+                    {IconLib.IC_CURRENT_POSITION}
+                </Svg>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => {
+                this.map.changeBaseMap({layerType: "TDT_IMAGE_MERCATOR"});
+            }} style={{
+                backgroundColor: "#FFF",
+                position: "absolute",
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                alignItems: "center",
+                justifyContent: "center",
+                bottom: 10,
+                right: 60
+            }}>
+                <Svg height={20} width={20} viewBox="0 0 1024 1024">
+                    {IconLib.IC_SATELLITE}
+                </Svg>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => {
+                this.map.changeBaseMap({layerType: "TDT_VECTOR_MERCATOR"});
+            }} style={{
+                backgroundColor: "#FFF",
+                position: "absolute",
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                alignItems: "center",
+                justifyContent: "center",
+                bottom: 10,
+                right: 110
+            }}>
+                <Svg height={20} width={20} viewBox="0 0 1024 1024">
+                    {IconLib.IC_STANDARD_MAP}
+                </Svg>
             </TouchableOpacity>
         </View>;
     }

@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -14,6 +15,7 @@ import androidx.annotation.Nullable;
 
 import com.alibaba.fastjson.JSONObject;
 import com.esri.arcgisruntime.ArcGISRuntimeEnvironment;
+import com.esri.arcgisruntime.concurrent.ListenableFuture;
 import com.esri.arcgisruntime.geometry.Envelope;
 import com.esri.arcgisruntime.geometry.GeodeticCurveType;
 import com.esri.arcgisruntime.geometry.Geometry;
@@ -31,11 +33,13 @@ import com.esri.arcgisruntime.geometry.SpatialReferences;
 import com.esri.arcgisruntime.layers.WebTiledLayer;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
 import com.esri.arcgisruntime.mapping.Basemap;
+import com.esri.arcgisruntime.mapping.GeoElement;
 import com.esri.arcgisruntime.mapping.Viewpoint;
 import com.esri.arcgisruntime.mapping.view.Callout;
 import com.esri.arcgisruntime.mapping.view.DefaultMapViewOnTouchListener;
 import com.esri.arcgisruntime.mapping.view.Graphic;
 import com.esri.arcgisruntime.mapping.view.GraphicsOverlay;
+import com.esri.arcgisruntime.mapping.view.IdentifyGraphicsOverlayResult;
 import com.esri.arcgisruntime.mapping.view.LocationDisplay;
 import com.esri.arcgisruntime.mapping.view.MapView;
 import com.esri.arcgisruntime.mapping.view.SketchCreationMode;
@@ -57,6 +61,12 @@ import com.mapbox.geojson.Feature;
 import com.plat.R;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 
 public class AGSMapView extends LinearLayout implements LifecycleEventListener {
@@ -66,6 +76,7 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
     public MapView mapView;
     private ArcGISMap arcGISMap;
     private LocationDisplay locationDisplay;
+    private Callout callout;
     private Double minZoom = 1.0;
     private Double maxZoom = 10.0;
 
@@ -107,6 +118,8 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
         mapView.setMap(arcGISMap);
 //        mapView.setViewpoint(new Viewpoint(31.336, 118.386, 10000));
 
+        initCallout();
+
         locationDisplay = mapView.getLocationDisplay();
         Log.i("AGS", "getInitialViewpoint(): " + mapView.getMap().getInitialViewpoint().toJson());
 
@@ -125,28 +138,91 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
             public boolean onSingleTapConfirmed(MotionEvent motionEvent) {
                 Log.d("AGS", "onSingleTapConfirmed: " + motionEvent.toString());
 
-                // get the point that was clicked and convert it to a point in map coordinates
                 android.graphics.Point screenPoint = new android.graphics.Point(Math.round(motionEvent.getX()),
                         Math.round(motionEvent.getY()));
                 // create a map point from screen point
                 Point mapPoint = mapView.screenToLocation(screenPoint);
-                // convert to WGS84 for lat/lon format
-                Point wgs84Point = (Point) GeometryEngine.project(mapPoint, SpatialReferences.getWgs84());
-                // create a textview for the callout
-                TextView calloutContent = new TextView(getContext().getApplicationContext());
-                calloutContent.setTextColor(Color.BLACK);
-                calloutContent.setSingleLine();
-                // format coordinates to 4 decimal places
-                calloutContent.setText("Lat: " + String.format("%.4f", wgs84Point.getY()) + ", Lon: " + String.format("%.4f", wgs84Point.getX()));
+                //将屏幕坐标 传入 identifyGraphicsOverlaysAsync （屏幕坐标，范围，包括图形和弹出窗口时为false，最大检索数）
+                final ListenableFuture<List<IdentifyGraphicsOverlayResult>> listListenableFuture = mapView.identifyGraphicsOverlaysAsync(screenPoint, 12, false, 5);
+                //添加点击事件
+                listListenableFuture.addDoneListener(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            //获取点击的范围图层
+                            List<IdentifyGraphicsOverlayResult> identifyLayerResults = listListenableFuture.get();
+                            if (identifyLayerResults.size() != 0) {
+                                //循环图层
+                                for (IdentifyGraphicsOverlayResult identifyLayerResult : identifyLayerResults) {
+                                    //循环所点击要素
+                                    for (final GeoElement geoElement : identifyLayerResult.getGraphics()) {
+                                        Log.d("AGS", "当前点击的" + geoElement.getAttributes());
 
-                // get callout, set content and show
-                Callout mCallout = mapView.getCallout();
-                mCallout.setLocation(mapPoint);
-                mCallout.setContent(calloutContent);
-                mCallout.show();
+                                        //实例化一个LinearLayout
+                                        ScrollView scrollView = new ScrollView(getContext().getApplicationContext());
+                                        LinearLayout linearLayout = new LinearLayout(getContext().getApplicationContext());
+                                        //为垂直方向布局
+                                        linearLayout.setOrientation(LinearLayout.VERTICAL);
+                                        //设置LinearLayout属性(宽和高)
+                                        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+                                        //设置边距
+//                                        layoutParams.setMargins(54, 0, 84, 0);
+                                        //将以上的属性赋给LinearLayout
+                                        linearLayout.setLayoutParams(layoutParams);
 
-                // center on tapped point
-                mapView.setViewpointCenterAsync(mapPoint);
+                                        // convert to WGS84 for lat/lon format
+                                        Point wgs84Point = (Point) GeometryEngine.project(mapPoint, SpatialReferences.getWgs84());
+
+                                        Map<String, Object> attributes = geoElement.getAttributes();
+                                        Iterator iterator = attributes.keySet().iterator();
+                                        while (iterator.hasNext()) {
+                                            Object objKey = iterator.next();
+                                            Object objValue = attributes.get(objKey);
+                                            TextView textView = new TextView(getContext().getApplicationContext());
+                                            textView.setTextColor(Color.BLACK);
+                                            textView.setSingleLine();
+                                            textView.setText(objKey + ": " + objValue);
+                                            linearLayout.addView(textView);
+                                        }
+//                                        for (Map.Entry<String, Object> entry : attributes.entrySet()) {
+//                                            TextView textView = new TextView(getContext().getApplicationContext());
+//                                            textView.setTextColor(Color.BLACK);
+//                                            textView.setSingleLine();
+//                                            textView.setText(entry.getKey() + ": " + entry.getValue());
+//                                            linearLayout.addView(textView);
+//                                        }
+
+                                        // create a textview for the callout
+                                        TextView calloutContent = new TextView(getContext().getApplicationContext());
+                                        calloutContent.setTextColor(Color.BLACK);
+                                        calloutContent.setSingleLine();
+                                        // format coordinates to 4 decimal places
+                                        calloutContent.setText("Lat: " + String.format("%.4f", wgs84Point.getY()) + ", Lon: " + String.format("%.4f", wgs84Point.getX()));
+                                        linearLayout.addView(calloutContent);
+                                        scrollView.addView(linearLayout);
+
+                                        callout.setLocation(mapPoint);
+                                        callout.setContent(scrollView);
+                                        callout.show();
+
+                                        // center on tapped point
+                                        mapView.setViewpointCenterAsync(mapPoint);
+                                    }
+                                }
+                            } else {
+                                callout.dismiss();
+                            }
+
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (ExecutionException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+
+                // get the point that was clicked and convert it to a point in map coordinates
+
 
                 return true;
             }
@@ -162,6 +238,36 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
 //            emitEvent("onMapDidLoad",map);
 //        });
     }
+
+    private void initCallout() {
+        callout = mapView.getCallout();
+        Callout.ShowOptions showOptions = new Callout.ShowOptions();
+        showOptions.setAnimateCallout(true);
+        showOptions.setAnimateRecenter(true);
+        showOptions.setRecenterMap(false);
+        callout.getStyle().setMaxHeight(300);
+        callout.getStyle().setMaxWidth(230);
+        callout.getStyle().setMinHeight(30);
+        callout.getStyle().setMinWidth(70);
+        callout.setShowOptions(showOptions);
+        callout.setPassTouchEventsToMapView(false);
+    }
+
+    @Override
+    public void requestLayout() {
+        super.requestLayout();
+        post(measureAndLayout);
+    }
+
+    private final Runnable measureAndLayout = new Runnable() {
+        @Override
+        public void run() {
+            measure(
+                    MeasureSpec.makeMeasureSpec(getWidth(), MeasureSpec.EXACTLY),
+                    MeasureSpec.makeMeasureSpec(getHeight(), MeasureSpec.EXACTLY));
+            layout(getLeft(), getTop(), getRight(), getBottom());
+        }
+    };
 
     @Override
     public void onHostResume() {
@@ -230,8 +336,10 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
 
     public void drawStop(Callback callback) {
         Log.i("AGS", "getSketchCreationMode2: " + mapView.getSketchEditor().getSketchCreationMode());
-        callback.invoke(mapView.getSketchEditor().getGeometry().toJson());
-        mapView.getSketchEditor().stop();
+        if (null != mapView.getSketchEditor().getSketchCreationMode()) {
+            callback.invoke(mapView.getSketchEditor().getGeometry().toJson());
+            mapView.getSketchEditor().stop();
+        }
     }
 
     public void setInitialMapCenter(ReadableArray initialCenter) {
@@ -297,6 +405,17 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
      * 定位
      */
     public void center() {
+        locationDisplay.setAutoPanMode(LocationDisplay.AutoPanMode.RECENTER);
+        locationDisplay.setShowLocation(true);
+        locationDisplay.setShowAccuracy(true);//隐藏符号的缓存区域
+        locationDisplay.setShowPingAnimation(true);//隐藏位置更新的符号动画
+        locationDisplay.startAsync();
+    }
+
+    /**
+     * 定位当前位置
+     */
+    public void location() {
         locationDisplay.setAutoPanMode(LocationDisplay.AutoPanMode.RECENTER);
         locationDisplay.setShowLocation(true);
         locationDisplay.setShowAccuracy(true);//隐藏符号的缓存区域
@@ -429,6 +548,11 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
 //            Graphic pointGraphic = new Graphic(point, pointSymbol);
 //            graphicsOverlay.getGraphics().add(pointGraphic);
 //        }
+
+        LinkedHashMap<String, Object> attributes = new LinkedHashMap<>();
+        attributes.put("name", "芜湖市公安局-点");
+        attributes.put("address", "赤铸山路-点");
+
         SimpleMarkerSymbol pointSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.rgb(226, 119, 40), 10.0f);
         pointSymbol.setOutline(new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.BLUE, 1.0f));
         Point point = new Point(118.4335, 31.3550, SpatialReferences.getWgs84());
@@ -444,6 +568,11 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
         GraphicsOverlay graphicsOverlay = new GraphicsOverlay();
         ReadableArray coordinates = geometry.getArray("coordinates");
         int size = coordinates.size();
+
+        LinkedHashMap<String, Object> attributes = new LinkedHashMap<>();
+        attributes.put("name", "芜湖市公安局-线");
+        attributes.put("address", "赤铸山路-线");
+
         if (size > 0) {
             PointCollection polylinePoints = new PointCollection(SpatialReferences.getWgs84());
             for (int i = 0; i < size; i++) {
@@ -451,7 +580,7 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
                 polylinePoints.add(new Point(polygonCoordinates.getDouble(0), polygonCoordinates.getDouble(1)));
             }
             SimpleLineSymbol polylineSymbol = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.BLUE, 1.0f);
-            Graphic polylineGraphic = new Graphic(Geometry.fromJson(parseGeoJsonToGeometry(geoJson)), polylineSymbol);
+            Graphic polylineGraphic = new Graphic(Geometry.fromJson(parseGeoJsonToGeometry(geoJson)), attributes, polylineSymbol);
             graphicsOverlay.getGraphics().add(polylineGraphic);
             mapView.getGraphicsOverlays().add(graphicsOverlay);
         }
@@ -463,6 +592,14 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
         ReadableArray coordinates = geometry.getArray("coordinates");
         int size = coordinates.size();
         Log.i("AGS", String.valueOf(size));
+
+        LinkedHashMap<String, Object> attributes = new LinkedHashMap<>();
+        attributes.put("name", "芜湖市公安局-面");
+        attributes.put("address", "赤铸山路-面赤铸山路-面赤铸山路-面");
+        attributes.put("address2", "赤铸山路-面赤铸山路-面赤铸山路-面");
+        attributes.put("address3", "赤铸山路-面赤铸山路-面赤铸山路-面");
+        attributes.put("address4", "赤铸山路-面赤铸山路-面赤铸山路-面");
+
         if (size > 0) {
             SimpleLineSymbol outlineSymbol =
                     new SimpleLineSymbol(
@@ -484,7 +621,7 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
                 parts.add(new Part(points));
             }
             Polygon polygon = new Polygon(parts);
-            Graphic graphic = new Graphic(Geometry.fromJson(parseGeoJsonToGeometry(geoJson)), fillSymbol);
+            Graphic graphic = new Graphic(Geometry.fromJson(parseGeoJsonToGeometry(geoJson)), attributes, fillSymbol);
 //            Graphic graphic = new Graphic(polygon, fillSymbol);
             graphicsOverlay.getGraphics().add(graphic);
             mapView.getGraphicsOverlays().add(graphicsOverlay);
