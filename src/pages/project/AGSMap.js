@@ -38,6 +38,20 @@ class AGSMap extends Component {
             <AGSMapView style={{flex: 1}}
                         ref={(ref) => this.map = ref}
 
+                        initialMapCenter={[
+                            [
+                                118.36850166320801,
+                                31.3734800138603
+                            ],
+                            [
+                                118.36855530738829,
+                                31.372344143074773
+                            ],
+                            [
+                                118.37855530738829,
+                                31.382344143074773
+                            ]
+                        ]}
             />
             <TouchableOpacity onPress={() => {
                 this.map.zoomIn();
@@ -67,7 +81,12 @@ class AGSMap extends Component {
             <TouchableOpacity onPress={() => {
                 this.map.addMarker({
                     "type": "Feature",
-                    "properties": {},
+                    "properties": {
+                        "类型": "点",
+                        "marker-color": "#bb5eff",
+                        "marker-size": 30,
+                        "marker-symbol": "DIAMOND"
+                    },
                     "geometry": {
                         "type": "Point",
                         "coordinates": [
@@ -90,9 +109,9 @@ class AGSMap extends Component {
                 let geoJson =
                     {
                         "type": "Feature",
-                        "properties": {
-                            name: "莲塘新村"
-                        },
+                        // "properties": {
+                        //     name: "莲塘新村"
+                        // },
                         "geometry": {
                             "type": "LineString",
                             "coordinates": [
@@ -152,9 +171,7 @@ class AGSMap extends Component {
                 let geoJson2 =
                     {
                         "type": "Feature",
-                        "properties": {
-                            name: "莲塘新村"
-                        },
+                        "properties": null,
                         "geometry": {
                             "type": "Polygon",
                             "coordinates": [

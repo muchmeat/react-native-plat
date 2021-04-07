@@ -72,6 +72,16 @@ public class AGSMapManager extends SimpleViewManager<AGSMapView> {
         agsMapView.setInitialMapCenter(array);
     }
 
+    @ReactProp(name = "minZoom")
+    public void setMinZoom(AGSMapView agsMapView, @Nullable int zoom) {
+        agsMapView.setMinZoom(zoom);
+    }
+
+    @ReactProp(name = "maxZoom")
+    public void setMaxZoom(AGSMapView agsMapView, @Nullable int zoom) {
+        agsMapView.setMaxZoom(zoom);
+    }
+
     @Override
     public Map<String, Integer> getCommandsMap() {
         Map<String, Integer> map = new HashMap<>();

@@ -21,7 +21,9 @@ export default class AGSMapView extends Component {
     }
 
     static propTypes = {
-        initialMapCenter: PropTypes.arrayOf(PropTypes.object)
+        initialMapCenter: PropTypes.arrayOf(PropTypes.array),
+        minZoom: PropTypes.number,
+        maxZoom: PropTypes.number
     };
 
     static defaultProps = {

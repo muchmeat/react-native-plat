@@ -1,8 +1,10 @@
 package com.component.map;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -28,7 +30,7 @@ import com.esri.arcgisruntime.geometry.PartCollection;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.PointCollection;
 import com.esri.arcgisruntime.geometry.Polygon;
-import com.esri.arcgisruntime.geometry.Polyline;
+import com.esri.arcgisruntime.geometry.SpatialReference;
 import com.esri.arcgisruntime.geometry.SpatialReferences;
 import com.esri.arcgisruntime.layers.WebTiledLayer;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
@@ -57,16 +59,18 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
-import com.mapbox.geojson.Feature;
 import com.plat.R;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static com.component.map.TDTLayerUtil.SCALES;
 
 
 public class AGSMapView extends LinearLayout implements LifecycleEventListener {
@@ -77,8 +81,8 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
     private ArcGISMap arcGISMap;
     private LocationDisplay locationDisplay;
     private Callout callout;
-    private Double minZoom = 1.0;
-    private Double maxZoom = 10.0;
+    private int minZoom = 1;
+    private int maxZoom = 18;
 
     //draw图层
     protected static GraphicsOverlay mDrawGraphicsOverlay;
@@ -99,7 +103,7 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
 //        WebTiledLayer webTiledLayer = TianDiTuTiledMapServiceLayerUtil.CreateTianDiTuTiledLayer(TianDiTuTiledMapServiceLayerUtil.LayerType.TIANDITU_IMAGE_2000);
 //        WebTiledLayer webTiledLayer = TDTLayerUtil.CreateTianDiTuTiledLayer(TDTLayerUtil.LayerType.TIANDITU_VECTOR_MERCATOR);
         WebTiledLayer webTiledLayer = TDTLayerUtil.CreateTianDiTuTiledLayer(TDTLayerUtil.LayerType.TDT_IMAGE_MERCATOR);
-//        webTiledLayer.loadAsync();
+        webTiledLayer.loadAsync();
         Basemap basemap = new Basemap(webTiledLayer);
         basemap.loadAsync();
         arcGISMap = new ArcGISMap(basemap);
@@ -115,13 +119,12 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
 //        ArcGISMap mMap = new ArcGISMap(BasemapStyle.ARCGIS_TOPOGRAPHIC);
 
         // set the map to be displayed in this view
-        mapView.setMap(arcGISMap);
+//        mapView.setMap(arcGISMap);
 //        mapView.setViewpoint(new Viewpoint(31.336, 118.386, 10000));
 
         initCallout();
 
         locationDisplay = mapView.getLocationDisplay();
-        Log.i("AGS", "getInitialViewpoint(): " + mapView.getMap().getInitialViewpoint().toJson());
 
         mDrawGraphicsOverlay = new GraphicsOverlay();
         mapView.getGraphicsOverlays().add(mDrawGraphicsOverlay);
@@ -154,6 +157,12 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
                             if (identifyLayerResults.size() != 0) {
                                 //循环图层
                                 for (IdentifyGraphicsOverlayResult identifyLayerResult : identifyLayerResults) {
+
+                                    for (final Graphic graphic : identifyLayerResult.getGraphics()) {
+                                        Map<String, Object> attributes = graphic.getAttributes();
+                                        Log.d("AGS", "当前点击的sss" + graphic.getAttributes());
+                                    }
+
                                     //循环所点击要素
                                     for (final GeoElement geoElement : identifyLayerResult.getGraphics()) {
                                         Log.d("AGS", "当前点击的" + geoElement.getAttributes());
@@ -174,23 +183,31 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
                                         Point wgs84Point = (Point) GeometryEngine.project(mapPoint, SpatialReferences.getWgs84());
 
                                         Map<String, Object> attributes = geoElement.getAttributes();
-                                        Iterator iterator = attributes.keySet().iterator();
-                                        while (iterator.hasNext()) {
-                                            Object objKey = iterator.next();
-                                            Object objValue = attributes.get(objKey);
-                                            TextView textView = new TextView(getContext().getApplicationContext());
-                                            textView.setTextColor(Color.BLACK);
-                                            textView.setSingleLine();
-                                            textView.setText(objKey + ": " + objValue);
-                                            linearLayout.addView(textView);
-                                        }
-//                                        for (Map.Entry<String, Object> entry : attributes.entrySet()) {
+//                                        Iterator iterator = attributes.keySet().iterator();
+//                                        while (iterator.hasNext()) {
+//                                            Object objKey = iterator.next();
+//                                            Object objValue = attributes.get(objKey);
 //                                            TextView textView = new TextView(getContext().getApplicationContext());
 //                                            textView.setTextColor(Color.BLACK);
 //                                            textView.setSingleLine();
-//                                            textView.setText(entry.getKey() + ": " + entry.getValue());
+//                                            textView.setText(objKey + ": " + objValue);
 //                                            linearLayout.addView(textView);
 //                                        }
+                                        for (Map.Entry<String, Object> entry : attributes.entrySet()) {
+                                            LinearLayout horizontalLinearLayout = new LinearLayout(getContext().getApplicationContext());
+                                            TextView keyTextView = new TextView(getContext().getApplicationContext());
+                                            TextView valueTextView = new TextView(getContext().getApplicationContext());
+                                            keyTextView.setTextColor(Color.BLACK);
+//                                            keyTextView.setSingleLine();
+                                            keyTextView.setWidth(40);
+                                            keyTextView.setText(entry.getKey());
+                                            valueTextView.setTextColor(Color.BLACK);
+//                                            valueTextView.setSingleLine();
+                                            valueTextView.setText(entry.getValue().toString());
+                                            horizontalLinearLayout.addView(keyTextView);
+                                            horizontalLinearLayout.addView(valueTextView);
+                                            linearLayout.addView(horizontalLinearLayout);
+                                        }
 
                                         // create a textview for the callout
                                         TextView calloutContent = new TextView(getContext().getApplicationContext());
@@ -248,7 +265,7 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
         callout.getStyle().setMaxHeight(300);
         callout.getStyle().setMaxWidth(230);
         callout.getStyle().setMinHeight(30);
-        callout.getStyle().setMinWidth(70);
+        callout.getStyle().setMinWidth(110);
         callout.setShowOptions(showOptions);
         callout.setPassTouchEventsToMapView(false);
     }
@@ -299,7 +316,6 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
         mapView.getSketchEditor().start(SketchCreationMode.RECTANGLE);
     }
 
-
     public void drawMultiPoint() {
         mapView.getSketchEditor().start(SketchCreationMode.MULTIPOINT);
     }
@@ -343,15 +359,20 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
     }
 
     public void setInitialMapCenter(ReadableArray initialCenter) {
+
+//        WebTiledLayer webTiledLayer = TDTLayerUtil.CreateTianDiTuTiledLayer(TDTLayerUtil.LayerType.TDT_IMAGE_MERCATOR);
+//        Basemap basemap = new Basemap(webTiledLayer);
+//        arcGISMap = new ArcGISMap(basemap);
+
         ArrayList<Point> points = new ArrayList<>();
         if (null != initialCenter) {
             for (int i = 0; i < initialCenter.size(); i++) {
-                ReadableMap item = initialCenter.getMap(i);
+                ReadableArray item = initialCenter.getArray(i);
                 if (item == null) {
                     continue;
                 }
-                Double latitude = item.getDouble("latitude");
-                Double longitude = item.getDouble("longitude");
+                Double latitude = item.getDouble(0);
+                Double longitude = item.getDouble(1);
                 if (latitude == 0 || longitude == 0) {
                     continue;
                 }
@@ -361,28 +382,25 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
         }
         Log.i("AGS", "points.size(): " + points.size());
         if (points.size() == 0) {
-//            points.add(new Point(118.386, 31.336, SpatialReferences.getWgs84()));
-            points.add(new Point(31.336, 118.386, SpatialReferences.getWgs84()));
+            points.add(new Point(31.3557, 118.4276, SpatialReferences.getWgs84()));
         }
+
         if (points.size() == 1) {
-            mapView.getMap().setInitialViewpoint(new Viewpoint(points.get(0), 10));
-            Log.i("AGS", "getInitialViewpoint(): " + mapView.getMap().getInitialViewpoint().toJson());
-//            mapView.setViewpoint(new Viewpoint(31.336, 118.386, 10000));
+            arcGISMap.setInitialViewpoint(new Viewpoint(points.get(0).getX(), points.get(0).getY(), 10000));
         } else {
             Polygon polygon = new Polygon(new PointCollection(points));
-            Viewpoint viewpoint = viewpointFromPolygon(polygon);
-            mapView.getMap().setInitialViewpoint(viewpoint);
+            Viewpoint viewpoint = centerViewpointFromPolygon(polygon);
+            arcGISMap.setInitialViewpoint(viewpoint);
         }
+        mapView.setMap(arcGISMap);
     }
 
-    public void setMinZoom(Double value) {
+    public void setMinZoom(int value) {
         minZoom = value;
-        mapView.getMap().setMinScale(minZoom);
     }
 
-    public void setMaxZoom(Double value) {
+    public void setMaxZoom(int value) {
         maxZoom = value;
-        mapView.getMap().setMaxScale(maxZoom);
     }
 
     /**
@@ -390,7 +408,12 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
      */
     public void zoomIn() {
         double scale = mapView.getMapScale();
-        mapView.setViewpointScaleAsync(scale * 2);
+        double scale2 = scale * 2;
+        if (SCALES[minZoom] >= scale2) {
+            mapView.setViewpointScaleAsync(scale2);
+        } else {
+            mapView.setViewpointScaleAsync(SCALES[minZoom]);
+        }
     }
 
     /**
@@ -398,7 +421,13 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
      */
     public void zoomOut() {
         double scale = mapView.getMapScale();
-        mapView.setViewpointScaleAsync(scale * 0.5);
+        double scale2 = scale * 0.5;
+        if (SCALES[maxZoom] <= scale2) {
+            mapView.setViewpointScaleAsync(scale2);
+        }
+//        else {
+//            mapView.setViewpointScaleAsync(SCALES[maxZoom]);
+//        }
     }
 
     /**
@@ -475,7 +504,7 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
      * @param geometryType
      * @return
      */
-    public Symbol getSymbol(GeometryType geometryType) {
+    public Symbol getSymbol(GeometryType geometryType, ReadableMap properties) {
         switch (geometryType) {
             case ENVELOPE:
                 break;
@@ -497,7 +526,33 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
             }
             case MULTIPOINT:
             case POINT: {
-                SimpleMarkerSymbol pointSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.rgb(226, 119, 40), 10.0f);
+                SimpleMarkerSymbol.Style symbolStyle = SimpleMarkerSymbol.Style.CIRCLE;
+                int color = Color.rgb(226, 119, 40);
+                float size = 10.0f;
+                if (null != properties) {
+                    if (!TextUtils.isEmpty(properties.getString("marker-symbol"))) {
+                        try {
+                            symbolStyle = SimpleMarkerSymbol.Style.valueOf(properties.getString("marker-symbol").toUpperCase());
+                        } catch (IllegalArgumentException e) {
+                        }
+                    }
+                    if (!TextUtils.isEmpty(properties.getString("marker-color"))) {
+                        try {
+                            color = Color.parseColor(properties.getString("marker-color"));
+                        } catch (IllegalArgumentException e) {
+                        }
+                    }
+                    boolean flag = false;
+                    if (!Double.isNaN(properties.getDouble("marker-size"))) {
+                        size = (float) properties.getDouble("marker-size");
+                        flag = true;
+                    }
+                    if (!flag && !TextUtils.isEmpty(properties.getString("marker-size"))) {
+                        size = Float.parseFloat(properties.getString("marker-size"));
+                    }
+                }
+
+                SimpleMarkerSymbol pointSymbol = new SimpleMarkerSymbol(symbolStyle, color, size);
                 pointSymbol.setOutline(new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.BLUE, 1.0f));
                 return pointSymbol;
             }
@@ -515,9 +570,10 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
      */
     public void addGeometry(ReadableMap geometryJson) {
         String geometry = geometryJson.getString("geometry");
+        ReadableMap properties = geometryJson.getMap("properties");
         GraphicsOverlay graphicsOverlay = new GraphicsOverlay();
         Geometry g = Geometry.fromJson(geometry);
-        Graphic graphic = new Graphic(g, getSymbol(g.getGeometryType()));
+        Graphic graphic = new Graphic(g, getSymbol(g.getGeometryType(), properties));
         graphicsOverlay.getGraphics().add(graphic);
         mapView.getGraphicsOverlays().add(graphicsOverlay);
     }
@@ -530,8 +586,10 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
     public void addMarker(ReadableMap geoJson) {
         GraphicsOverlay graphicsOverlay = new GraphicsOverlay();
 
-//        coordinates = geometry.getArray("coordinates");
-//        SimpleMarkerSymbol pointSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.rgb(226, 119, 40), 10.0f);
+        ReadableMap geometry = geoJson.getMap("geometry");
+        ReadableMap properties = geoJson.getMap("properties");
+        ReadableArray coordinates = geometry.getArray("coordinates");
+//        SimpleMarkerSymbol pointSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.valueOf("circle"), Color.rgb(226, 119, 40), 10.0f);
 //        pointSymbol.setOutline(new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.BLUE, 2.0f));
 //        Point point = new Point(coordinates.getDouble(0), coordinates.getDouble(1), SpatialReferences.getWgs84());
 //        String icon = properties.hasKey("icon") ? properties.getString("icon") : null;
@@ -549,22 +607,38 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
 //            graphicsOverlay.getGraphics().add(pointGraphic);
 //        }
 
-        LinkedHashMap<String, Object> attributes = new LinkedHashMap<>();
-        attributes.put("name", "芜湖市公安局-点");
-        attributes.put("address", "赤铸山路-点");
-
         SimpleMarkerSymbol pointSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.rgb(226, 119, 40), 10.0f);
         pointSymbol.setOutline(new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.BLUE, 1.0f));
-        Point point = new Point(118.4335, 31.3550, SpatialReferences.getWgs84());
 //        Graphic pointGraphic = new Graphic(point, pointSymbol);
-        Graphic pointGraphic = new Graphic(Geometry.fromJson(parseGeoJsonToGeometry(geoJson)), pointSymbol);
+//        Graphic pointGraphic = new Graphic(Geometry.fromJson(parseGeoJsonToGeometry(geoJson)), properties.toHashMap(), pointSymbol);
+        Map<String, Object> attributesMap = getAttributesMap(properties);
+        Graphic pointGraphic = new Graphic(Geometry.fromJson(parseGeoJsonToGeometry(geoJson)), attributesMap, getSymbol(GeometryType.POINT, properties));
         graphicsOverlay.getGraphics().add(pointGraphic);
         mapView.getGraphicsOverlays().add(graphicsOverlay);
-        mapView.getMap().setInitialViewpoint(new Viewpoint(point, 10000));
+
+        Point point = new Point(coordinates.getDouble(0), coordinates.getDouble(1), SpatialReferences.getWgs84());
+        Viewpoint viewpoint = new Viewpoint(point, 10000);
+        mapView.setViewpointAsync(viewpoint);
+    }
+
+    public Map<String, Object> getAttributesMap(ReadableMap properties) {
+        if(null == properties){
+            return null;
+        }
+        Map<String, Object> map = properties.toHashMap();
+        for(Map.Entry<String, Object> entry : map.entrySet()){
+            if(entry.getKey().equals("marker-color")){
+                map.remove(entry);
+            }
+        }
+
+
+        return map;
     }
 
     public void addPolyline(ReadableMap geoJson) {
         ReadableMap geometry = geoJson.getMap("geometry");
+        ReadableMap properties = geoJson.getMap("properties");
         GraphicsOverlay graphicsOverlay = new GraphicsOverlay();
         ReadableArray coordinates = geometry.getArray("coordinates");
         int size = coordinates.size();
@@ -583,11 +657,15 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
             Graphic polylineGraphic = new Graphic(Geometry.fromJson(parseGeoJsonToGeometry(geoJson)), attributes, polylineSymbol);
             graphicsOverlay.getGraphics().add(polylineGraphic);
             mapView.getGraphicsOverlays().add(graphicsOverlay);
+
+            Viewpoint viewpoint = viewpointFromGeometry(Geometry.fromJson(parseGeoJsonToGeometry(geoJson)));
+            mapView.setViewpointAsync(viewpoint);
         }
     }
 
     public void addPolygon(ReadableMap geoJson) {
         ReadableMap geometry = geoJson.getMap("geometry");
+        ReadableMap properties = geoJson.getMap("properties");
         GraphicsOverlay graphicsOverlay = new GraphicsOverlay();
         ReadableArray coordinates = geometry.getArray("coordinates");
         int size = coordinates.size();
@@ -625,6 +703,11 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
 //            Graphic graphic = new Graphic(polygon, fillSymbol);
             graphicsOverlay.getGraphics().add(graphic);
             mapView.getGraphicsOverlays().add(graphicsOverlay);
+
+            Viewpoint viewpoint = viewpointFromPolygon(polygon);
+//            Viewpoint viewpoint = new Viewpoint(centerPoint, 10000);
+            mapView.setViewpointAsync(viewpoint);
+
         }
     }
 
@@ -649,6 +732,23 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
 
     public Viewpoint viewpointFromPolygon(Polygon polygon) {
         Envelope envelope = polygon.getExtent();
+        Double paddingWidth = envelope.getWidth() * 0.5;
+        Double paddingHeight = envelope.getHeight() * 0.5;
+        return new Viewpoint(new Envelope(
+                envelope.getXMin() - paddingWidth, envelope.getYMax() + paddingHeight,
+                envelope.getXMax() + paddingWidth, envelope.getYMin() - paddingHeight,
+                SpatialReferences.getWgs84()), 0);
+    }
+
+    public Viewpoint centerViewpointFromPolygon(Polygon polygon) {
+        Envelope envelope = polygon.getExtent();
+        double x = (envelope.getXMin() + envelope.getXMax()) / 2;
+        double y = (envelope.getYMin() + envelope.getYMax()) / 2;
+        return new Viewpoint(x, y, 10000);
+    }
+
+    public Viewpoint viewpointFromGeometry(Geometry geometry) {
+        Envelope envelope = geometry.getExtent();
         Double paddingWidth = envelope.getWidth() * 0.5;
         Double paddingHeight = envelope.getHeight() * 0.5;
         return new Viewpoint(new Envelope(

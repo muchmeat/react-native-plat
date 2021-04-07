@@ -51,7 +51,7 @@ public class TDTLayerUtil {
                     Y_MAX_2000,
                     SRID_2000);
 
-    private static final double[] SCALES = {
+    protected static final double[] SCALES = {
             2.958293554545656E8, 1.479146777272828E8,
             7.39573388636414E7, 3.69786694318207E7,
             1.848933471591035E7, 9244667.357955175,
