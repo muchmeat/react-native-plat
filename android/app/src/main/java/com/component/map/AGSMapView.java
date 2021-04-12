@@ -1,6 +1,5 @@
 package com.component.map;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -30,7 +29,6 @@ import com.esri.arcgisruntime.geometry.PartCollection;
 import com.esri.arcgisruntime.geometry.Point;
 import com.esri.arcgisruntime.geometry.PointCollection;
 import com.esri.arcgisruntime.geometry.Polygon;
-import com.esri.arcgisruntime.geometry.SpatialReference;
 import com.esri.arcgisruntime.geometry.SpatialReferences;
 import com.esri.arcgisruntime.layers.WebTiledLayer;
 import com.esri.arcgisruntime.mapping.ArcGISMap;
@@ -62,13 +60,13 @@ import com.facebook.react.uimanager.events.RCTEventEmitter;
 import com.plat.R;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static com.component.map.TDTLayerUtil.SCALES;
 
@@ -83,9 +81,12 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
     private Callout callout;
     private int minZoom = 1;
     private int maxZoom = 18;
+    private static List<String> symbolProperties = Arrays.asList("marker-color", "marker-size", "marker-symbol", "marker-opacity", "line-opacity", "line-width", "line-color", "line-symbol", "fill-symbol", "fill-color", "fill-opacity");
 
     //draw图层
-    protected static GraphicsOverlay mDrawGraphicsOverlay;
+    protected static GraphicsOverlay mDrawGraphicsOverlay = new GraphicsOverlay();
+    //add图层
+    protected static GraphicsOverlay mAddGraphicsOverlay = new GraphicsOverlay();
 
     public AGSMapView(Context context) {
         super(context);
@@ -107,33 +108,15 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
         Basemap basemap = new Basemap(webTiledLayer);
         basemap.loadAsync();
         arcGISMap = new ArcGISMap(basemap);
-//        arcGISMap.setMinScale(1500);
-//        arcGISMap.setMaxScale(50000000);
-//        mapView.setMap(new ArcGISMap(Basemap.Type.STREETS_VECTOR, 31.3583, 118.4271, 17));
-//        mapView.setMap(arcGISMap);
-//        Envelope initialExtent = new Envelope(-12211308.778729, 4645116.003309, -12208257.879667, 4650542.535773,
-//                SpatialReference.create(102100));
-//        Viewpoint viewpoint = new Viewpoint(initialExtent);
-//        mapView.setViewpoint(viewpoint);
 
-//        ArcGISMap mMap = new ArcGISMap(BasemapStyle.ARCGIS_TOPOGRAPHIC);
-
-        // set the map to be displayed in this view
-//        mapView.setMap(arcGISMap);
-//        mapView.setViewpoint(new Viewpoint(31.336, 118.386, 10000));
-
-        initCallout();
+        setUpCallout();
+        setUpSketchEditor();
 
         locationDisplay = mapView.getLocationDisplay();
 
-        mDrawGraphicsOverlay = new GraphicsOverlay();
         mapView.getGraphicsOverlays().add(mDrawGraphicsOverlay);
+        mapView.getGraphicsOverlays().add(mAddGraphicsOverlay);
 
-
-        SketchEditor sketchEditor = new SketchEditor();
-        SketchStyle sketchStyle = new SketchStyle();
-        sketchEditor.setSketchStyle(sketchStyle);
-        mapView.setSketchEditor(sketchEditor);
 
         mapView.setOnTouchListener(new DefaultMapViewOnTouchListener(context, mapView) {
 
@@ -149,87 +132,28 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
                 final ListenableFuture<List<IdentifyGraphicsOverlayResult>> listListenableFuture = mapView.identifyGraphicsOverlaysAsync(screenPoint, 12, false, 5);
                 //添加点击事件
                 listListenableFuture.addDoneListener(new Runnable() {
+
                     @Override
                     public void run() {
                         try {
                             //获取点击的范围图层
                             List<IdentifyGraphicsOverlayResult> identifyLayerResults = listListenableFuture.get();
                             if (identifyLayerResults.size() != 0) {
-                                //循环图层
+                                //循环图层获取Graphic
+                                List<GeoElement> graphics3 = new ArrayList<>();
                                 for (IdentifyGraphicsOverlayResult identifyLayerResult : identifyLayerResults) {
-
-                                    for (final Graphic graphic : identifyLayerResult.getGraphics()) {
-                                        Map<String, Object> attributes = graphic.getAttributes();
-                                        Log.d("AGS", "当前点击的sss" + graphic.getAttributes());
-                                    }
-
-                                    //循环所点击要素
-                                    for (final GeoElement geoElement : identifyLayerResult.getGraphics()) {
-                                        Log.d("AGS", "当前点击的" + geoElement.getAttributes());
-
-                                        //实例化一个LinearLayout
-                                        ScrollView scrollView = new ScrollView(getContext().getApplicationContext());
-                                        LinearLayout linearLayout = new LinearLayout(getContext().getApplicationContext());
-                                        //为垂直方向布局
-                                        linearLayout.setOrientation(LinearLayout.VERTICAL);
-                                        //设置LinearLayout属性(宽和高)
-                                        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
-                                        //设置边距
-//                                        layoutParams.setMargins(54, 0, 84, 0);
-                                        //将以上的属性赋给LinearLayout
-                                        linearLayout.setLayoutParams(layoutParams);
-
-                                        // convert to WGS84 for lat/lon format
-                                        Point wgs84Point = (Point) GeometryEngine.project(mapPoint, SpatialReferences.getWgs84());
-
-                                        Map<String, Object> attributes = geoElement.getAttributes();
-//                                        Iterator iterator = attributes.keySet().iterator();
-//                                        while (iterator.hasNext()) {
-//                                            Object objKey = iterator.next();
-//                                            Object objValue = attributes.get(objKey);
-//                                            TextView textView = new TextView(getContext().getApplicationContext());
-//                                            textView.setTextColor(Color.BLACK);
-//                                            textView.setSingleLine();
-//                                            textView.setText(objKey + ": " + objValue);
-//                                            linearLayout.addView(textView);
-//                                        }
-                                        for (Map.Entry<String, Object> entry : attributes.entrySet()) {
-                                            LinearLayout horizontalLinearLayout = new LinearLayout(getContext().getApplicationContext());
-                                            TextView keyTextView = new TextView(getContext().getApplicationContext());
-                                            TextView valueTextView = new TextView(getContext().getApplicationContext());
-                                            keyTextView.setTextColor(Color.BLACK);
-//                                            keyTextView.setSingleLine();
-                                            keyTextView.setWidth(40);
-                                            keyTextView.setText(entry.getKey());
-                                            valueTextView.setTextColor(Color.BLACK);
-//                                            valueTextView.setSingleLine();
-                                            valueTextView.setText(entry.getValue().toString());
-                                            horizontalLinearLayout.addView(keyTextView);
-                                            horizontalLinearLayout.addView(valueTextView);
-                                            linearLayout.addView(horizontalLinearLayout);
-                                        }
-
-                                        // create a textview for the callout
-                                        TextView calloutContent = new TextView(getContext().getApplicationContext());
-                                        calloutContent.setTextColor(Color.BLACK);
-                                        calloutContent.setSingleLine();
-                                        // format coordinates to 4 decimal places
-                                        calloutContent.setText("Lat: " + String.format("%.4f", wgs84Point.getY()) + ", Lon: " + String.format("%.4f", wgs84Point.getX()));
-                                        linearLayout.addView(calloutContent);
-                                        scrollView.addView(linearLayout);
-
-                                        callout.setLocation(mapPoint);
-                                        callout.setContent(scrollView);
-                                        callout.show();
-
-                                        // center on tapped point
-                                        mapView.setViewpointCenterAsync(mapPoint);
-                                    }
+                                    graphics3.addAll(identifyLayerResult.getGraphics());
                                 }
+                                Collections.sort(graphics3, (o1, o2) -> {
+                                    Integer sort = getGeometryTypeSort(o1.getGeometry().getGeometryType());
+                                    Integer sort2 = getGeometryTypeSort(o2.getGeometry().getGeometryType());
+                                    return sort.compareTo(sort2);
+                                });
+                                showCallout(mapPoint, graphics3.get(0));
+
                             } else {
                                 callout.dismiss();
                             }
-
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         } catch (ExecutionException e) {
@@ -237,10 +161,6 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
                         }
                     }
                 });
-
-                // get the point that was clicked and convert it to a point in map coordinates
-
-
                 return true;
             }
         });
@@ -256,7 +176,65 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
 //        });
     }
 
-    private void initCallout() {
+    private void showCallout(Point mapPoint, GeoElement graphic) {
+        //实例化一个LinearLayout
+        ScrollView scrollView = new ScrollView(getContext().getApplicationContext());
+        LinearLayout linearLayout = new LinearLayout(getContext().getApplicationContext());
+        //为垂直方向布局
+        linearLayout.setOrientation(LinearLayout.VERTICAL);
+        //设置LinearLayout属性(宽和高)
+        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+        //设置边距
+//                                        layoutParams.setMargins(54, 0, 84, 0);
+        //将以上的属性赋给LinearLayout
+        linearLayout.setLayoutParams(layoutParams);
+
+        // convert to WGS84 for lat/lon format
+        Point wgs84Point = (Point) GeometryEngine.project(mapPoint, SpatialReferences.getWgs84());
+        Map<String, Object> attributes = graphic.getAttributes();
+
+        for (Map.Entry<String, Object> entry : attributes.entrySet()) {
+            LinearLayout horizontalLinearLayout = new LinearLayout(getContext().getApplicationContext());
+            TextView keyTextView = new TextView(getContext().getApplicationContext());
+            TextView valueTextView = new TextView(getContext().getApplicationContext());
+            keyTextView.setTextColor(Color.BLACK);
+//                                            keyTextView.setSingleLine();
+            keyTextView.setWidth(40);
+            keyTextView.setText(entry.getKey());
+            valueTextView.setTextColor(Color.BLACK);
+//                                            valueTextView.setSingleLine();
+            valueTextView.setText(entry.getValue().toString());
+            horizontalLinearLayout.addView(keyTextView);
+            horizontalLinearLayout.addView(valueTextView);
+            linearLayout.addView(horizontalLinearLayout);
+
+        }
+        if (0 == linearLayout.getChildCount()) {
+            TextView emptyContent = new TextView(getContext().getApplicationContext());
+            emptyContent.setTextColor(Color.BLACK);
+            emptyContent.setSingleLine();
+            emptyContent.setText("没有信息");
+            linearLayout.addView(emptyContent);
+        }
+
+        // create a textview for the callout
+        TextView calloutContent = new TextView(getContext().getApplicationContext());
+        calloutContent.setTextColor(Color.BLACK);
+        calloutContent.setSingleLine();
+        // format coordinates to 4 decimal places
+        calloutContent.setText("Lat: " + String.format("%.4f", wgs84Point.getY()) + ", Lon: " + String.format("%.4f", wgs84Point.getX()));
+        linearLayout.addView(calloutContent);
+
+        scrollView.addView(linearLayout);
+        callout.setLocation(mapPoint);
+        callout.setContent(scrollView);
+        callout.show();
+
+        // center on tapped point
+        mapView.setViewpointCenterAsync(mapPoint);
+    }
+
+    private void setUpCallout() {
         callout = mapView.getCallout();
         Callout.ShowOptions showOptions = new Callout.ShowOptions();
         showOptions.setAnimateCallout(true);
@@ -268,6 +246,43 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
         callout.getStyle().setMinWidth(110);
         callout.setShowOptions(showOptions);
         callout.setPassTouchEventsToMapView(false);
+    }
+
+    private void setUpSketchEditor() {
+        SketchEditor sketchEditor = new SketchEditor();
+        SketchStyle sketchStyle = new SketchStyle();
+        sketchEditor.setSketchStyle(sketchStyle);
+        mapView.setSketchEditor(sketchEditor);
+    }
+
+    public Integer getGeometryTypeSort(GeometryType geometryType) {
+        Integer i = 6;
+        switch (geometryType) {
+            case POINT: {
+                i = 1;
+                break;
+            }
+            case MULTIPOINT: {
+                i = 2;
+                break;
+            }
+            case POLYLINE: {
+                i = 3;
+                break;
+            }
+            case POLYGON: {
+                i = 4;
+                break;
+            }
+            case ENVELOPE: {
+                i = 5;
+                break;
+            }
+            case UNKNOWN: {
+                break;
+            }
+        }
+        return i;
     }
 
     @Override
@@ -305,6 +320,8 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
     }
 
     public void emitEvent(String eventName, WritableMap args) {
+        Log.i("AGS", "getId(): " + getId());
+
         ((ReactContext) getContext()).getJSModule(RCTEventEmitter.class).receiveEvent(
                 getId(),
                 eventName,
@@ -431,17 +448,6 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
     }
 
     /**
-     * 定位
-     */
-    public void center() {
-        locationDisplay.setAutoPanMode(LocationDisplay.AutoPanMode.RECENTER);
-        locationDisplay.setShowLocation(true);
-        locationDisplay.setShowAccuracy(true);//隐藏符号的缓存区域
-        locationDisplay.setShowPingAnimation(true);//隐藏位置更新的符号动画
-        locationDisplay.startAsync();
-    }
-
-    /**
      * 定位当前位置
      */
     public void location() {
@@ -462,6 +468,11 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
         mapView.setViewpointAsync(viewpoint);
     }
 
+    /**
+     * 设置中心点
+     *
+     * @param center
+     */
     public void setCenter(@Nullable ReadableMap center) {
         Point centerPoint;
         if (center != null) {
@@ -502,6 +513,7 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
      * 获取geometryType对应的Symbol
      *
      * @param geometryType
+     * @param properties
      * @return
      */
     public Symbol getSymbol(GeometryType geometryType, ReadableMap properties) {
@@ -509,48 +521,28 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
             case ENVELOPE:
                 break;
             case POLYLINE: {
-                SimpleLineSymbol polylineSymbol = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.BLUE, 1.0f);
-                return polylineSymbol;
+                SimpleLineSymbol.Style symbolStyle = getSimpleLineSymbolStyle(properties);
+                int color = getColor(properties, "line-color", Color.BLUE, "line-opacity");
+                float width = getSize(properties, "line-width", 1.0f);
+
+                return new SimpleLineSymbol(symbolStyle, color, width);
             }
             case POLYGON: {
-                SimpleLineSymbol outlineSymbol =
-                        new SimpleLineSymbol(
-                                SimpleLineSymbol.Style.SOLID,
-                                Color.argb(255, 97, 181, 252), 1.0f);
-                SimpleFillSymbol fillSymbol =
-                        new SimpleFillSymbol(
-                                SimpleFillSymbol.Style.SOLID,
-                                Color.argb(Math.round(100), 1, 21, 244),
-                                outlineSymbol);
+                SimpleLineSymbol.Style symbolStyle = getSimpleLineSymbolStyle(properties);
+                int color = getColor(properties, "line-color", Color.argb(255, 97, 181, 252), "line-opacity");
+                float width = getSize(properties, "line-width", 1.0f);
+                SimpleLineSymbol outlineSymbol = new SimpleLineSymbol(symbolStyle, color, width);
+
+                SimpleFillSymbol.Style fillSymbolStyle = getSimpleFillSymbolStyle(properties);
+                int fillColor = getColor(properties, "fill-color", Color.argb(Math.round(100), 1, 21, 244), "fill-opacity");
+                SimpleFillSymbol fillSymbol = new SimpleFillSymbol(fillSymbolStyle, fillColor, outlineSymbol);
                 return fillSymbol;
             }
             case MULTIPOINT:
             case POINT: {
-                SimpleMarkerSymbol.Style symbolStyle = SimpleMarkerSymbol.Style.CIRCLE;
-                int color = Color.rgb(226, 119, 40);
-                float size = 10.0f;
-                if (null != properties) {
-                    if (!TextUtils.isEmpty(properties.getString("marker-symbol"))) {
-                        try {
-                            symbolStyle = SimpleMarkerSymbol.Style.valueOf(properties.getString("marker-symbol").toUpperCase());
-                        } catch (IllegalArgumentException e) {
-                        }
-                    }
-                    if (!TextUtils.isEmpty(properties.getString("marker-color"))) {
-                        try {
-                            color = Color.parseColor(properties.getString("marker-color"));
-                        } catch (IllegalArgumentException e) {
-                        }
-                    }
-                    boolean flag = false;
-                    if (!Double.isNaN(properties.getDouble("marker-size"))) {
-                        size = (float) properties.getDouble("marker-size");
-                        flag = true;
-                    }
-                    if (!flag && !TextUtils.isEmpty(properties.getString("marker-size"))) {
-                        size = Float.parseFloat(properties.getString("marker-size"));
-                    }
-                }
+                SimpleMarkerSymbol.Style symbolStyle = getSimpleMarkerSymbolStyle(properties);
+                int color = getColor(properties, "marker-color", Color.rgb(226, 119, 40), "marker-opacity");
+                float size = getSize(properties, "marker-size", 10.0f);
 
                 SimpleMarkerSymbol pointSymbol = new SimpleMarkerSymbol(symbolStyle, color, size);
                 pointSymbol.setOutline(new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.BLUE, 1.0f));
@@ -563,6 +555,80 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
         return null;
     }
 
+    public float getSize(ReadableMap properties, String sizeName, Float defaultSize) {
+        float size = defaultSize == null ? 10.0f : defaultSize;
+        if (null != properties) {
+            try {
+                boolean flag = false;
+                if (!Double.isNaN(properties.getDouble(sizeName))) {
+                    size = (float) properties.getDouble(sizeName);
+                    flag = true;
+                }
+                if (!flag && !TextUtils.isEmpty(properties.getString(sizeName))) {
+                    size = Float.parseFloat(properties.getString(sizeName));
+                }
+            } catch (IllegalArgumentException e) {
+            }
+        }
+        return size;
+    }
+
+    public int getColor(ReadableMap properties, String colorName, Integer defaultColor, String opacityName) {
+        int color = defaultColor == null ? Color.rgb(226, 119, 40) : defaultColor;
+        if (null != properties && !TextUtils.isEmpty(properties.getString(colorName))) {
+            try {
+                color = Color.parseColor(properties.getString(colorName));
+                if (null != opacityName) {
+                    Map map = properties.toHashMap();
+                    Object opacity = map.get(opacityName);
+                    if (null != opacity) {
+                        int red = Color.red(color);
+                        int green = Color.green(color);
+                        int blue = Color.blue(color);
+                        int alpha = (int) (Double.parseDouble(opacity.toString()) * 255);
+                        color = Color.argb(alpha, red, green, blue);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return color;
+    }
+
+    public SimpleMarkerSymbol.Style getSimpleMarkerSymbolStyle(ReadableMap properties) {
+        SimpleMarkerSymbol.Style symbolStyle = SimpleMarkerSymbol.Style.CIRCLE;
+        if (null != properties && !TextUtils.isEmpty(properties.getString("marker-symbol"))) {
+            try {
+                return SimpleMarkerSymbol.Style.valueOf(properties.getString("marker-symbol").toUpperCase());
+            } catch (IllegalArgumentException e) {
+            }
+        }
+        return symbolStyle;
+    }
+
+    public SimpleFillSymbol.Style getSimpleFillSymbolStyle(ReadableMap properties) {
+        SimpleFillSymbol.Style symbolStyle = SimpleFillSymbol.Style.SOLID;
+        if (null != properties && !TextUtils.isEmpty(properties.getString("fill-symbol"))) {
+            try {
+                return SimpleFillSymbol.Style.valueOf(properties.getString("fill-symbol").toUpperCase());
+            } catch (IllegalArgumentException e) {
+            }
+        }
+        return symbolStyle;
+    }
+
+    public SimpleLineSymbol.Style getSimpleLineSymbolStyle(ReadableMap properties) {
+        SimpleLineSymbol.Style symbolStyle = SimpleLineSymbol.Style.SOLID;
+        if (null != properties && !TextUtils.isEmpty(properties.getString("line-symbol"))) {
+            try {
+                return SimpleLineSymbol.Style.valueOf(properties.getString("line-symbol").toUpperCase());
+            } catch (IllegalArgumentException e) {
+            }
+        }
+        return symbolStyle;
+    }
+
     /**
      * ArcGIS的Geometry添加到图层上图
      *
@@ -571,11 +637,11 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
     public void addGeometry(ReadableMap geometryJson) {
         String geometry = geometryJson.getString("geometry");
         ReadableMap properties = geometryJson.getMap("properties");
-        GraphicsOverlay graphicsOverlay = new GraphicsOverlay();
         Geometry g = Geometry.fromJson(geometry);
         Graphic graphic = new Graphic(g, getSymbol(g.getGeometryType(), properties));
-        graphicsOverlay.getGraphics().add(graphic);
-        mapView.getGraphicsOverlays().add(graphicsOverlay);
+        mAddGraphicsOverlay.getGraphics().add(graphic);
+//        graphicsOverlay.getGraphics().add(graphic);
+//        mapView.getGraphicsOverlays().add(graphicsOverlay);
     }
 
     /**
@@ -584,8 +650,6 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
      * @param geoJson
      */
     public void addMarker(ReadableMap geoJson) {
-        GraphicsOverlay graphicsOverlay = new GraphicsOverlay();
-
         ReadableMap geometry = geoJson.getMap("geometry");
         ReadableMap properties = geoJson.getMap("properties");
         ReadableArray coordinates = geometry.getArray("coordinates");
@@ -606,46 +670,44 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
 //            Graphic pointGraphic = new Graphic(point, pointSymbol);
 //            graphicsOverlay.getGraphics().add(pointGraphic);
 //        }
-
-        SimpleMarkerSymbol pointSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.Style.CIRCLE, Color.rgb(226, 119, 40), 10.0f);
-        pointSymbol.setOutline(new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.BLUE, 1.0f));
 //        Graphic pointGraphic = new Graphic(point, pointSymbol);
 //        Graphic pointGraphic = new Graphic(Geometry.fromJson(parseGeoJsonToGeometry(geoJson)), properties.toHashMap(), pointSymbol);
         Map<String, Object> attributesMap = getAttributesMap(properties);
         Graphic pointGraphic = new Graphic(Geometry.fromJson(parseGeoJsonToGeometry(geoJson)), attributesMap, getSymbol(GeometryType.POINT, properties));
-        graphicsOverlay.getGraphics().add(pointGraphic);
-        mapView.getGraphicsOverlays().add(graphicsOverlay);
+        mAddGraphicsOverlay.getGraphics().add(pointGraphic);
+//        graphicsOverlay.getGraphics().add(pointGraphic);
+//        mapView.getGraphicsOverlays().add(graphicsOverlay);
 
         Point point = new Point(coordinates.getDouble(0), coordinates.getDouble(1), SpatialReferences.getWgs84());
         Viewpoint viewpoint = new Viewpoint(point, 10000);
         mapView.setViewpointAsync(viewpoint);
     }
 
+    /**
+     * 对properties内的symbolProperties进行筛选移除
+     *
+     * @param properties
+     * @return
+     */
     public Map<String, Object> getAttributesMap(ReadableMap properties) {
-        if(null == properties){
-            return null;
+        if (null == properties) {
+            return new HashMap<>();
         }
         Map<String, Object> map = properties.toHashMap();
-        for(Map.Entry<String, Object> entry : map.entrySet()){
-            if(entry.getKey().equals("marker-color")){
-                map.remove(entry);
+        Iterator<String> iterator = map.keySet().iterator();
+        while (iterator.hasNext()) {
+            if (symbolProperties.contains(iterator.next())) {
+                iterator.remove();
             }
         }
-
-
         return map;
     }
 
     public void addPolyline(ReadableMap geoJson) {
         ReadableMap geometry = geoJson.getMap("geometry");
         ReadableMap properties = geoJson.getMap("properties");
-        GraphicsOverlay graphicsOverlay = new GraphicsOverlay();
         ReadableArray coordinates = geometry.getArray("coordinates");
         int size = coordinates.size();
-
-        LinkedHashMap<String, Object> attributes = new LinkedHashMap<>();
-        attributes.put("name", "芜湖市公安局-线");
-        attributes.put("address", "赤铸山路-线");
 
         if (size > 0) {
             PointCollection polylinePoints = new PointCollection(SpatialReferences.getWgs84());
@@ -653,10 +715,9 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
                 ReadableArray polygonCoordinates = coordinates.getArray(i);
                 polylinePoints.add(new Point(polygonCoordinates.getDouble(0), polygonCoordinates.getDouble(1)));
             }
-            SimpleLineSymbol polylineSymbol = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.BLUE, 1.0f);
-            Graphic polylineGraphic = new Graphic(Geometry.fromJson(parseGeoJsonToGeometry(geoJson)), attributes, polylineSymbol);
-            graphicsOverlay.getGraphics().add(polylineGraphic);
-            mapView.getGraphicsOverlays().add(graphicsOverlay);
+            Map<String, Object> attributesMap = getAttributesMap(properties);
+            Graphic polylineGraphic = new Graphic(Geometry.fromJson(parseGeoJsonToGeometry(geoJson)), attributesMap, getSymbol(GeometryType.POLYLINE, properties));
+            mAddGraphicsOverlay.getGraphics().add(polylineGraphic);
 
             Viewpoint viewpoint = viewpointFromGeometry(Geometry.fromJson(parseGeoJsonToGeometry(geoJson)));
             mapView.setViewpointAsync(viewpoint);
@@ -666,28 +727,11 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
     public void addPolygon(ReadableMap geoJson) {
         ReadableMap geometry = geoJson.getMap("geometry");
         ReadableMap properties = geoJson.getMap("properties");
-        GraphicsOverlay graphicsOverlay = new GraphicsOverlay();
         ReadableArray coordinates = geometry.getArray("coordinates");
         int size = coordinates.size();
         Log.i("AGS", String.valueOf(size));
 
-        LinkedHashMap<String, Object> attributes = new LinkedHashMap<>();
-        attributes.put("name", "芜湖市公安局-面");
-        attributes.put("address", "赤铸山路-面赤铸山路-面赤铸山路-面");
-        attributes.put("address2", "赤铸山路-面赤铸山路-面赤铸山路-面");
-        attributes.put("address3", "赤铸山路-面赤铸山路-面赤铸山路-面");
-        attributes.put("address4", "赤铸山路-面赤铸山路-面赤铸山路-面");
-
         if (size > 0) {
-            SimpleLineSymbol outlineSymbol =
-                    new SimpleLineSymbol(
-                            SimpleLineSymbol.Style.SOLID,
-                            Color.argb(255, 97, 181, 252), 1.5f);
-            SimpleFillSymbol fillSymbol =
-                    new SimpleFillSymbol(
-                            SimpleFillSymbol.Style.SOLID,
-                            Color.argb(Math.round(100), 1, 21, 244),
-                            outlineSymbol);
             PartCollection parts = new PartCollection(SpatialReferences.getWgs84());
             for (int i = 0; i < size; i++) {
                 ReadableArray polygonCoordinates = coordinates.getArray(i);
@@ -699,35 +743,35 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
                 parts.add(new Part(points));
             }
             Polygon polygon = new Polygon(parts);
-            Graphic graphic = new Graphic(Geometry.fromJson(parseGeoJsonToGeometry(geoJson)), attributes, fillSymbol);
-//            Graphic graphic = new Graphic(polygon, fillSymbol);
-            graphicsOverlay.getGraphics().add(graphic);
-            mapView.getGraphicsOverlays().add(graphicsOverlay);
+            Map<String, Object> attributesMap = getAttributesMap(properties);
+            Graphic graphic = new Graphic(Geometry.fromJson(parseGeoJsonToGeometry(geoJson)), attributesMap, getSymbol(GeometryType.POLYGON, properties));
+            mAddGraphicsOverlay.getGraphics().add(graphic);
 
             Viewpoint viewpoint = viewpointFromPolygon(polygon);
-//            Viewpoint viewpoint = new Viewpoint(centerPoint, 10000);
             mapView.setViewpointAsync(viewpoint);
-
         }
     }
 
     public void addCircle(ReadableMap circleParams) {
-        GraphicsOverlay graphicsOverlay = new GraphicsOverlay();
         double radius = circleParams.getDouble("radius");
         ReadableArray center = circleParams.getArray("center");
+        ReadableMap properties = circleParams.getMap("properties");
+        int fillColor = getColor(properties, "fill-color", Color.argb(Math.round(100), 1, 21, 244), "fill-opacity");
         Point point = new Point(center.getDouble(0), center.getDouble(1), SpatialReferences.getWgs84());
-        SimpleLineSymbol planarOutlineSymbol = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, Color.argb(15, 1, 21, 244), 2);
-        SimpleFillSymbol planarBufferFillSymbol = new SimpleFillSymbol(SimpleFillSymbol.Style.SOLID, Color.argb(15, 1, 21, 244),
-                planarOutlineSymbol);
-        //平面测量，椭圆
+        SimpleLineSymbol planarOutlineSymbol = new SimpleLineSymbol(SimpleLineSymbol.Style.SOLID, fillColor, 2);
+        SimpleFillSymbol planarBufferFillSymbol = new SimpleFillSymbol(SimpleFillSymbol.Style.SOLID, fillColor, planarOutlineSymbol);
+        //fixme todo 平面测量，椭圆
 //        double transferRadius = radius / (111000 * Math.cos(point.getY()));
 //        Geometry bufferGeometryPlanar = GeometryEngine.buffer(point, transferRadius);
         //大地测量
         Geometry bufferGeometryPlanar = GeometryEngine.bufferGeodetic(point, radius, new LinearUnit(LinearUnitId.METERS), 1, GeodeticCurveType.NORMAL_SECTION);
-        Graphic planarBufferGraphic = new Graphic(bufferGeometryPlanar);
-        planarBufferGraphic.setSymbol(planarBufferFillSymbol);
-        graphicsOverlay.getGraphics().add(planarBufferGraphic);
-        mapView.getGraphicsOverlays().add(graphicsOverlay);
+
+        Map<String, Object> attributesMap = getAttributesMap(properties);
+        Graphic planarBufferGraphic = new Graphic(bufferGeometryPlanar, attributesMap, planarBufferFillSymbol);
+        mAddGraphicsOverlay.getGraphics().add(planarBufferGraphic);
+
+        Viewpoint viewpoint = viewpointFromGeometry(bufferGeometryPlanar);
+        mapView.setViewpointAsync(viewpoint);
     }
 
     public Viewpoint viewpointFromPolygon(Polygon polygon) {

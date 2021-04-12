@@ -52,6 +52,9 @@ class AGSMap extends Component {
                                 31.382344143074773
                             ]
                         ]}
+                        onGraphicClick={(res)=>{
+                            console.warn(JSON.stringify(res))
+                        }}
             />
             <TouchableOpacity onPress={() => {
                 this.map.zoomIn();
@@ -85,7 +88,8 @@ class AGSMap extends Component {
                         "类型": "点",
                         "marker-color": "#bb5eff",
                         "marker-size": 30,
-                        "marker-symbol": "DIAMOND"
+                        "marker-symbol": "DIAMOND",
+                        "marker-opacity": "0.5"
                     },
                     "geometry": {
                         "type": "Point",
@@ -109,9 +113,13 @@ class AGSMap extends Component {
                 let geoJson =
                     {
                         "type": "Feature",
-                        // "properties": {
-                        //     name: "莲塘新村"
-                        // },
+                        "properties": {
+                            "name": "莲塘新村",
+                            "line-symbol": "DASH_DOT",
+                            "line-color": "#575bc0",
+                            "line-width": 5.3,
+                            "line-opacity": 0.5
+                        },
                         "geometry": {
                             "type": "LineString",
                             "coordinates": [
@@ -171,7 +179,13 @@ class AGSMap extends Component {
                 let geoJson2 =
                     {
                         "type": "Feature",
-                        "properties": null,
+                        "properties": {
+                            "name": "莲塘新村",
+                            "line-symbol": "DASH_DOT",
+                            "line-color": "#575bc0",
+                            "line-width": 5.3,
+                            "fill-color": "#c04597",
+                        },
                         "geometry": {
                             "type": "Polygon",
                             "coordinates": [
@@ -224,7 +238,15 @@ class AGSMap extends Component {
             </TouchableOpacity>
 
             <TouchableOpacity onPress={() => {
-                let circleParams = {"center": [118.43643737792969, 31.35923901780546], "radius": 500};
+                let circleParams = {
+                    "center": [118.43643737792969, 31.35923901780546],
+                    "radius": 5000,
+                    "properties": {
+                        "fill-color": "#c04597",
+                        "fill-opacity": 0.5,
+                        "地点":"区域中心"
+                    }
+                };
                 this.map.addCircle(circleParams);
             }} style={{
                 backgroundColor: "#9fbbff",

@@ -18,17 +18,27 @@ export default class AGSMapView extends Component {
     constructor(props) {
         super(props);
         this.ManagerName = "AGSMapManager";
+        this._onGraphicClick = this._onGraphicClick.bind(this);
     }
 
     static propTypes = {
         initialMapCenter: PropTypes.arrayOf(PropTypes.array),
         minZoom: PropTypes.number,
-        maxZoom: PropTypes.number
+        maxZoom: PropTypes.number,
+        onGraphicClick: PropTypes.func,
     };
 
     static defaultProps = {
         initialMapCenter: []
     };
+
+    _onGraphicClick(event: Event) {
+        // do something
+        if (!this.props.onGraphicClick) {
+            return;
+        }
+        this.props.onGraphicClick(event.nativeEvent);
+    }
 
     UIDispatch = (command, params = []) => {
         UIManager.dispatchViewManagerCommand(
@@ -104,7 +114,7 @@ export default class AGSMapView extends Component {
 
     drawStop = (callBack) => {
         AGSMapModule.drawStop(findNodeHandle(this.AGSMapView), (res) => {
-            if(callBack){
+            if (callBack) {
                 callBack(res)
             }
         })
@@ -125,6 +135,7 @@ export default class AGSMapView extends Component {
     render() {
         return <MapView ref={(ref) => this.AGSMapView = ref}
                         {...this.props}
-            />
+                        onGraphicClick={this._onGraphicClick}
+        />
     }
 }

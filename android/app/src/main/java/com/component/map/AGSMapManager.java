@@ -93,6 +93,7 @@ public class AGSMapManager extends SimpleViewManager<AGSMapView> {
         map.put("addCircle", COMMAND_ADD_CIRCLE);
         map.put("addGeometry", COMMAND_ADD_GEOMETRY);
         map.put("location", COMMAND_LOCATION);
+        map.put("setCenter", COMMAND_CENTER);
         map.put("changeBaseMap", COMMAND_BASE_MAP);
         map.put("dispose", COMMAND_DISPOSE);
 //        map.put("drawPoint", COMMAND_DRAW_POINT);
@@ -118,7 +119,7 @@ public class AGSMapManager extends SimpleViewManager<AGSMapView> {
                 return;
             }
             case COMMAND_CENTER: {
-                root.center();
+                root.setCenter(Objects.requireNonNull(args).getMap(0));
                 return;
             }
             case COMMAND_LOCATION: {
@@ -199,11 +200,6 @@ public class AGSMapManager extends SimpleViewManager<AGSMapView> {
                         MapBuilder.of(
                                 "phasedRegistrationNames",
                                 MapBuilder.of("bubbled", "onMapReady")))
-                .put(
-                        "drawCallback1",
-                        MapBuilder.of(
-                                "phasedRegistrationNames",
-                                MapBuilder.of("bubbled", "drawCallback1")))
                 .build();
     }
 
@@ -211,8 +207,8 @@ public class AGSMapManager extends SimpleViewManager<AGSMapView> {
     @Override
     public Map<String, Object> getExportedCustomDirectEventTypeConstants() {
         return MapBuilder.<String, Object>builder()
-                .put("drawCallback",
-                        MapBuilder.of("registrationName", "drawCallback"))
+                .put("onGraphicClick",
+                        MapBuilder.of("registrationName", "onGraphicClick"))
                 .build();
     }
 
