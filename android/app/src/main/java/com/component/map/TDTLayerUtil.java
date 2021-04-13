@@ -16,7 +16,7 @@ public class TDTLayerUtil {
     //需要自己去申请,绑定包名和SHA1，我这个你们用不了
     private static final String key = "4eeaf737c0d61a4ee834a26b22658292";
     private static final List<String> SubDomain =
-            Arrays.asList(new String[]{"t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7"});
+            Arrays.asList("t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7");
 
     private static final int DPI = 96;
     private static final int minZoomLevel = 1;

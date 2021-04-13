@@ -117,53 +117,54 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
         mapView.getGraphicsOverlays().add(mDrawGraphicsOverlay);
         mapView.getGraphicsOverlays().add(mAddGraphicsOverlay);
 
+        mapView.setOnTouchListener(new OnSingleTapConfirmedListener(context, mapView));
 
-        mapView.setOnTouchListener(new DefaultMapViewOnTouchListener(context, mapView) {
-
-            @Override
-            public boolean onSingleTapConfirmed(MotionEvent motionEvent) {
-                Log.d("AGS", "onSingleTapConfirmed: " + motionEvent.toString());
-
-                android.graphics.Point screenPoint = new android.graphics.Point(Math.round(motionEvent.getX()),
-                        Math.round(motionEvent.getY()));
-                // create a map point from screen point
-                Point mapPoint = mapView.screenToLocation(screenPoint);
-                //将屏幕坐标 传入 identifyGraphicsOverlaysAsync （屏幕坐标，范围，包括图形和弹出窗口时为false，最大检索数）
-                final ListenableFuture<List<IdentifyGraphicsOverlayResult>> listListenableFuture = mapView.identifyGraphicsOverlaysAsync(screenPoint, 12, false, 5);
-                //添加点击事件
-                listListenableFuture.addDoneListener(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        try {
-                            //获取点击的范围图层
-                            List<IdentifyGraphicsOverlayResult> identifyLayerResults = listListenableFuture.get();
-                            if (identifyLayerResults.size() != 0) {
-                                //循环图层获取Graphic
-                                List<GeoElement> graphics3 = new ArrayList<>();
-                                for (IdentifyGraphicsOverlayResult identifyLayerResult : identifyLayerResults) {
-                                    graphics3.addAll(identifyLayerResult.getGraphics());
-                                }
-                                Collections.sort(graphics3, (o1, o2) -> {
-                                    Integer sort = getGeometryTypeSort(o1.getGeometry().getGeometryType());
-                                    Integer sort2 = getGeometryTypeSort(o2.getGeometry().getGeometryType());
-                                    return sort.compareTo(sort2);
-                                });
-                                showCallout(mapPoint, graphics3.get(0));
-
-                            } else {
-                                callout.dismiss();
-                            }
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        } catch (ExecutionException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                });
-                return true;
-            }
-        });
+//        mapView.setOnTouchListener(new DefaultMapViewOnTouchListener(context, mapView) {
+//
+//            @Override
+//            public boolean onSingleTapConfirmed(MotionEvent motionEvent) {
+//                Log.d("AGS", "onSingleTapConfirmed: " + motionEvent.toString());
+//
+//                android.graphics.Point screenPoint = new android.graphics.Point(Math.round(motionEvent.getX()),
+//                        Math.round(motionEvent.getY()));
+//                // create a map point from screen point
+//                Point mapPoint = mapView.screenToLocation(screenPoint);
+//                //将屏幕坐标 传入 identifyGraphicsOverlaysAsync （屏幕坐标，范围，包括图形和弹出窗口时为false，最大检索数）
+//                final ListenableFuture<List<IdentifyGraphicsOverlayResult>> listListenableFuture = mapView.identifyGraphicsOverlaysAsync(screenPoint, 12, false, 5);
+//                //添加点击事件
+//                listListenableFuture.addDoneListener(new Runnable() {
+//
+//                    @Override
+//                    public void run() {
+//                        try {
+//                            //获取点击的范围图层
+//                            List<IdentifyGraphicsOverlayResult> identifyLayerResults = listListenableFuture.get();
+//                            if (identifyLayerResults.size() != 0) {
+//                                //循环图层获取Graphic
+//                                List<GeoElement> graphics3 = new ArrayList<>();
+//                                for (IdentifyGraphicsOverlayResult identifyLayerResult : identifyLayerResults) {
+//                                    graphics3.addAll(identifyLayerResult.getGraphics());
+//                                }
+//                                Collections.sort(graphics3, (o1, o2) -> {
+//                                    Integer sort = getGeometryTypeSort(o1.getGeometry().getGeometryType());
+//                                    Integer sort2 = getGeometryTypeSort(o2.getGeometry().getGeometryType());
+//                                    return sort.compareTo(sort2);
+//                                });
+//                                showCallout(mapPoint, graphics3.get(0));
+//
+//                            } else {
+//                                callout.dismiss();
+//                            }
+//                        } catch (InterruptedException e) {
+//                            e.printStackTrace();
+//                        } catch (ExecutionException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                });
+//                return true;
+//            }
+//        });
 //        mapView.getMap().addDoneLoadingListener(() -> {
 //            ArcGISRuntimeException e = mapView.getMap().getLoadError();
 //            Boolean success = e != null;
@@ -174,6 +175,54 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
 //
 //            emitEvent("onMapDidLoad",map);
 //        });
+    }
+
+    public class OnSingleTapConfirmedListener extends DefaultMapViewOnTouchListener {
+        public OnSingleTapConfirmedListener(Context context, MapView mapView) {
+            super(context, mapView);
+        }
+
+        @Override
+        public boolean onSingleTapConfirmed(MotionEvent e) {
+            android.graphics.Point screenPoint = new android.graphics.Point(Math.round(e.getX()),
+                    Math.round(e.getY()));
+            // create a map point from screen point
+            Point mapPoint = mapView.screenToLocation(screenPoint);
+            //将屏幕坐标 传入 identifyGraphicsOverlaysAsync （屏幕坐标，范围，包括图形和弹出窗口时为false，最大检索数）
+            final ListenableFuture<List<IdentifyGraphicsOverlayResult>> listListenableFuture = mapView.identifyGraphicsOverlaysAsync(screenPoint, 12, false, 5);
+            //添加点击事件
+            listListenableFuture.addDoneListener(new Runnable() {
+
+                @Override
+                public void run() {
+                    try {
+                        //获取点击的范围图层
+                        List<IdentifyGraphicsOverlayResult> identifyLayerResults = listListenableFuture.get();
+                        if (identifyLayerResults.size() != 0) {
+                            //循环图层获取Graphic
+                            List<GeoElement> graphics3 = new ArrayList<>();
+                            for (IdentifyGraphicsOverlayResult identifyLayerResult : identifyLayerResults) {
+                                graphics3.addAll(identifyLayerResult.getGraphics());
+                            }
+                            Collections.sort(graphics3, (o1, o2) -> {
+                                Integer sort = getGeometryTypeSort(o1.getGeometry().getGeometryType());
+                                Integer sort2 = getGeometryTypeSort(o2.getGeometry().getGeometryType());
+                                return sort.compareTo(sort2);
+                            });
+                            showCallout(mapPoint, graphics3.get(0));
+
+                        } else {
+                            callout.dismiss();
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    } catch (ExecutionException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            return true;
+        }
     }
 
     private void showCallout(Point mapPoint, GeoElement graphic) {
