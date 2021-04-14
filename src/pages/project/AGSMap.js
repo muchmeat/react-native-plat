@@ -52,34 +52,66 @@ class AGSMap extends Component {
                                 31.382344143074773
                             ]
                         ]}
-                        onGraphicClick={(res)=>{
-                            console.warn(JSON.stringify(res))
-                        }}
             />
+
             <TouchableOpacity onPress={() => {
                 this.map.zoomIn();
             }} style={{
-                backgroundColor: "#70e9ff",
+                // backgroundColor: "#FFF",
                 position: "absolute",
-                width: 20,
-                height: 20,
+                width: 22,
+                height: 22,
+                alignItems: "center",
+                justifyContent: "center",
                 top: 10,
                 right: 10
             }}>
-                <Text>放大</Text>
+                <Svg height={20} width={20} viewBox="0 0 1024 1024">
+                    {IconLib.IC_ZOOM_IN}
+                </Svg>
             </TouchableOpacity>
+
             <TouchableOpacity onPress={() => {
                 this.map.zoomOut();
             }} style={{
-                backgroundColor: "#bcff80",
+                // backgroundColor: "#FFF",
                 position: "absolute",
-                width: 20,
-                height: 20,
-                top: 35,
+                width: 22,
+                height: 22,
+                alignItems: "center",
+                justifyContent: "center",
+                top: 40,
                 right: 10
             }}>
-                <Text>缩小</Text>
+                <Svg height={20} width={20} viewBox="0 0 1024 1024">
+                    {IconLib.IC_ZOOM_OUT}
+                </Svg>
             </TouchableOpacity>
+
+            {/*<TouchableOpacity onPress={() => {*/}
+            {/*    this.map.zoomIn();*/}
+            {/*}} style={{*/}
+            {/*    backgroundColor: "#70e9ff",*/}
+            {/*    position: "absolute",*/}
+            {/*    width: 20,*/}
+            {/*    height: 20,*/}
+            {/*    top: 10,*/}
+            {/*    right: 10*/}
+            {/*}}>*/}
+            {/*    <Text>放大</Text>*/}
+            {/*</TouchableOpacity>*/}
+            {/*<TouchableOpacity onPress={() => {*/}
+            {/*    this.map.zoomOut();*/}
+            {/*}} style={{*/}
+            {/*    backgroundColor: "#bcff80",*/}
+            {/*    position: "absolute",*/}
+            {/*    width: 20,*/}
+            {/*    height: 20,*/}
+            {/*    top: 35,*/}
+            {/*    right: 10*/}
+            {/*}}>*/}
+            {/*    <Text>缩小</Text>*/}
+            {/*</TouchableOpacity>*/}
 
             <TouchableOpacity onPress={() => {
                 this.map.addMarker({
@@ -263,68 +295,120 @@ class AGSMap extends Component {
             <TouchableOpacity onPress={() => {
                 this.map.drawPoint();
             }} style={{
-                backgroundColor: "#70e9ff",
+                backgroundColor: "#FFF",
                 position: "absolute",
+                width: 22,
+                height: 22,
+                borderRadius: 20,
                 alignItems: "center",
                 justifyContent: "center",
-                width: 30,
-                height: 30,
-                borderRadius: 15,
                 top: 10,
                 left: 10
             }}>
-                <Text>点</Text>
+                <Svg height={20} width={20} viewBox="0 0 1024 1024">
+                    {IconLib.IC_DRAW_MARK}
+                </Svg>
             </TouchableOpacity>
-
             <TouchableOpacity onPress={() => {
                 this.map.drawPolyline();
             }} style={{
-                backgroundColor: "#ff9d66",
+                backgroundColor: "#FFF",
                 position: "absolute",
+                width: 22,
+                height: 22,
+                borderRadius: 20,
                 alignItems: "center",
                 justifyContent: "center",
-                width: 30,
-                height: 30,
-                borderRadius: 15,
-                top: 50,
+                top: 40,
                 left: 10
             }}>
-                <Text>线</Text>
+                <Svg height={20} width={20} viewBox="0 0 1024 1024">
+                    {IconLib.IC_DRAW_POLYLINE}
+                </Svg>
             </TouchableOpacity>
-
             <TouchableOpacity onPress={() => {
                 this.map.drawPolygon();
             }} style={{
-                backgroundColor: "#bb5eff",
+                backgroundColor: "#FFF",
                 position: "absolute",
+                width: 22,
+                height: 22,
+                borderRadius: 20,
                 alignItems: "center",
                 justifyContent: "center",
-                width: 30,
-                height: 30,
-                borderRadius: 15,
-                top: 90,
+                top: 70,
                 left: 10
             }}>
-                <Text>面</Text>
+                <Svg height={20} width={20} viewBox="0 0 1024 1024">
+                    {IconLib.IC_DRAW_POLYGON}
+                </Svg>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => {
-                this.map.drawStop((res) => {
-                    console.warn(res)
-                    this.map.addGeometry({geometry: res})
-                });
-            }} style={{
-                backgroundColor: "#a2ff77",
-                position: "absolute",
-                alignItems: "center",
-                justifyContent: "center",
-                width: 30,
-                height: 30,
-                borderRadius: 15,
-                top: 130,
-                left: 10
-            }}>
-                <Text>stop</Text>
-            </TouchableOpacity>
+
+            {/*<TouchableOpacity onPress={() => {*/}
+            {/*    this.map.drawPoint();*/}
+            {/*}} style={{*/}
+            {/*    backgroundColor: "#70e9ff",*/}
+            {/*    position: "absolute",*/}
+            {/*    alignItems: "center",*/}
+            {/*    justifyContent: "center",*/}
+            {/*    width: 30,*/}
+            {/*    height: 30,*/}
+            {/*    borderRadius: 15,*/}
+            {/*    top: 10,*/}
+            {/*    left: 10*/}
+            {/*}}>*/}
+            {/*    <Text>点</Text>*/}
+            {/*</TouchableOpacity>*/}
+
+            {/*<TouchableOpacity onPress={() => {*/}
+            {/*    this.map.drawPolyline();*/}
+            {/*}} style={{*/}
+            {/*    backgroundColor: "#ff9d66",*/}
+            {/*    position: "absolute",*/}
+            {/*    alignItems: "center",*/}
+            {/*    justifyContent: "center",*/}
+            {/*    width: 30,*/}
+            {/*    height: 30,*/}
+            {/*    borderRadius: 15,*/}
+            {/*    top: 50,*/}
+            {/*    left: 10*/}
+            {/*}}>*/}
+            {/*    <Text>线</Text>*/}
+            {/*</TouchableOpacity>*/}
+
+            {/*<TouchableOpacity onPress={() => {*/}
+            {/*    this.map.drawPolygon();*/}
+            {/*}} style={{*/}
+            {/*    backgroundColor: "#bb5eff",*/}
+            {/*    position: "absolute",*/}
+            {/*    alignItems: "center",*/}
+            {/*    justifyContent: "center",*/}
+            {/*    width: 30,*/}
+            {/*    height: 30,*/}
+            {/*    borderRadius: 15,*/}
+            {/*    top: 90,*/}
+            {/*    left: 10*/}
+            {/*}}>*/}
+            {/*    <Text>面</Text>*/}
+            {/*</TouchableOpacity>*/}
+            {/*<TouchableOpacity onPress={() => {*/}
+            {/*    this.map.drawStop((res) => {*/}
+            {/*        console.warn(res)*/}
+            {/*        this.map.addGeometry({geometry: res})*/}
+            {/*    });*/}
+            {/*}} style={{*/}
+            {/*    backgroundColor: "#a2ff77",*/}
+            {/*    position: "absolute",*/}
+            {/*    alignItems: "center",*/}
+            {/*    justifyContent: "center",*/}
+            {/*    width: 30,*/}
+            {/*    height: 30,*/}
+            {/*    borderRadius: 15,*/}
+            {/*    top: 130,*/}
+            {/*    left: 10*/}
+            {/*}}>*/}
+            {/*    <Text>stop</Text>*/}
+            {/*</TouchableOpacity>*/}
 
             {/*下*/}
             <TouchableOpacity onPress={() => {

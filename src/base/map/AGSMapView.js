@@ -33,7 +33,6 @@ export default class AGSMapView extends Component {
     };
 
     _onGraphicClick(event: Event) {
-        // do something
         if (!this.props.onGraphicClick) {
             return;
         }
@@ -120,22 +119,14 @@ export default class AGSMapView extends Component {
         })
     };
 
-    // _mapReadyCallback = () => {
-    //     this._addMarker(this.props.marker);
-    //     this._addPolyline(this.props.polyline);
-    //     this._addPolygon(this.props.polygon);
-    //     this._addCircle(this.props.circle);
-    // };
-
-    // componentWillUnmount() {
-    //     console.warn("componentWillUnmount")
-    //     this.UIDispatch('dispose');
-    // }
+    componentWillUnmount() {
+        this.UIDispatch('dispose');
+    }
 
     render() {
         return <MapView ref={(ref) => this.AGSMapView = ref}
                         {...this.props}
-                        onGraphicClick={this._onGraphicClick}
+                        // onGraphicClick={this._onGraphicClick}
         />
     }
 }

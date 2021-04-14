@@ -210,7 +210,6 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
                                 return sort.compareTo(sort2);
                             });
                             showCallout(mapPoint, graphics.get(0));
-
                         } else {
                             callout.dismiss();
                         }
@@ -222,6 +221,24 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
                 }
             });
             return true;
+        }
+
+        @Override
+        public boolean onDoubleTap(MotionEvent e) {
+            if (null != mapView.getSketchEditor().getSketchCreationMode()) {
+                mapView.getSketchEditor().stop();
+                return true;
+            }
+            return super.onDoubleTap(e);
+        }
+
+        @Override
+        public boolean onDoubleTapEvent(MotionEvent e) {
+            if (null != mapView.getSketchEditor().getSketchCreationMode()) {
+                mapView.getSketchEditor().stop();
+                return true;
+            }
+            return super.onDoubleTapEvent(e);
         }
     }
 
