@@ -200,16 +200,16 @@ public class AGSMapView extends LinearLayout implements LifecycleEventListener {
                         List<IdentifyGraphicsOverlayResult> identifyLayerResults = listListenableFuture.get();
                         if (identifyLayerResults.size() != 0) {
                             //循环图层获取Graphic
-                            List<GeoElement> graphics3 = new ArrayList<>();
+                            List<GeoElement> graphics = new ArrayList<>();
                             for (IdentifyGraphicsOverlayResult identifyLayerResult : identifyLayerResults) {
-                                graphics3.addAll(identifyLayerResult.getGraphics());
+                                graphics.addAll(identifyLayerResult.getGraphics());
                             }
-                            Collections.sort(graphics3, (o1, o2) -> {
+                            Collections.sort(graphics, (o1, o2) -> {
                                 Integer sort = getGeometryTypeSort(o1.getGeometry().getGeometryType());
                                 Integer sort2 = getGeometryTypeSort(o2.getGeometry().getGeometryType());
                                 return sort.compareTo(sort2);
                             });
-                            showCallout(mapPoint, graphics3.get(0));
+                            showCallout(mapPoint, graphics.get(0));
 
                         } else {
                             callout.dismiss();
