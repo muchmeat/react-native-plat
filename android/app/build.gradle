@@ -149,6 +149,9 @@ android {
             storePassword 'android'
             keyAlias 'androiddebugkey'
             keyPassword 'android'
+            //https://www.jianshu.com/p/06c8c44ec6b0
+            //The application could not be installed: INSTALL_PARSE_FAILED_NO_CERTIFICATES
+            v2SigningEnabled false
         }
     }
     buildTypes {
