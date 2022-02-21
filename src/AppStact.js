@@ -20,6 +20,7 @@ import AGSMap from './pages/project/AGSMap';
 import Example from './pages/project/jwyy/example';
 import Example2 from './pages/project/jwyy/example2';
 import Example3 from './pages/project/jwyy/example3';
+import tts from './pages/project/jwyy/tts';
 
 
 const Tabs = createBottomTabNavigator({
@@ -52,7 +53,7 @@ const Tabs = createBottomTabNavigator({
     'Component': {
         screen: Example3,
         navigationOptions: {
-            tabBarLabel: '我的', // tabBar显示的文字
+            tabBarLabel: '组件', // tabBar显示的文字
             tabBarIcon: ({focused}) => { // tabBar显示的图标
                 if (focused) {
                     return <Svg height={22} width={22} viewBox="0 0 1024 1024">{IconLib.MY2}</Svg>
@@ -90,7 +91,6 @@ const Tabs = createBottomTabNavigator({
     },
 });
 
-
 //设置嵌入stack的tab Title
 Tabs.navigationOptions = ({navigation}) => {
     return setNavigation(navigation, Tabs, 1);
@@ -110,15 +110,16 @@ const setNavigation = (navigation, tab) => {
 };
 
 const routeConfigMap = {
-    App: {screen: Tabs}
+    bottomTab: {screen: Tabs},
+    tts: {screen: tts}
 };
 const stackConfig = {
-    initialRouteName: 'Tabs', // 默认显示界面
+    initialRouteName: 'bottomTab', // 默认显示界面
     headerMode: 'screen',       //header的显示模式，值为none时不显示
     // headerTransitionPreset: "fade-in-place",
     navigationOptions: {       //此处设置的navigationOptions属性为所有页面使用，页面可以设置static navigationOptions，将此属性覆盖
-                               //右边的button，可在页面上写
-                               // headerRight:<View style={{paddingRight:20,height:50,width:60,alignItems:"center"}}><TextCompent style={{flex:1}} onPress={()=>{alert("曹尼玛啊")}}>重中之重</TextCompent></View>,
+        //右边的button，可在页面上写
+        // headerRight:<View style={{paddingRight:20,height:50,width:60,alignItems:"center"}}><TextCompent style={{flex:1}} onPress={()=>{alert("曹尼玛啊")}}>重中之重</TextCompent></View>,
         headerStyle: {
             backgroundColor: "#4171ff",
             height: 51,
@@ -152,13 +153,15 @@ const stackConfig = {
     // })
 };
 
-const AppNavigator = createStackNavigator(routeConfigMap, stackConfig);
+const ApplicationStack = createStackNavigator(routeConfigMap, stackConfig);
 
-const SwitchNavigator = createSwitchNavigator({
-    Splash: {screen: Splash},
-    Auth: {screen: Login},
-    ...routeConfigMap
-}, {
-    initialRouteName: 'App'
-});
+const SwitchNavigator = createSwitchNavigator(
+    {
+        Splash: Splash,
+        Auth: Login,
+        App: ApplicationStack
+    },
+    {
+        initialRouteName: 'App'
+    });
 export default createAppContainer(SwitchNavigator);

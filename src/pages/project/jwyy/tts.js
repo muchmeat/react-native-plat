@@ -1,21 +1,17 @@
-/**
- * 警情查询 查询条件页
- * @author:czq
- * @date:2020-11-30
- */
 import React, {Component} from 'react';
 import {
     View,
     Text,
     StyleSheet,
-    PixelRatio,
-    TouchableOpacity,
-    FlatList
+    TextInput,
+    PixelRatio
 } from 'react-native';
 import {connect} from 'react-redux'; // 引入connect函数
-import {NavigationActions} from "react-navigation";
+import {TTS} from '../../../base/nativemodule';
+import {TouchableOpacity} from "react-native-gesture-handler";
+import {isEmpty} from "../../../base/form/common";
 
-class example3 extends Component {
+class tts extends Component {
     constructor(props) {
         super(props);
         this.state = {};
@@ -23,7 +19,7 @@ class example3 extends Component {
 
     static navigationOptions = ({navigation}) => {
         return {
-            title: '示例',
+            title: '文字转语音',
             headerStyle: {
                 borderBottomWidth: 0,
                 alignItems: "center",
@@ -33,40 +29,27 @@ class example3 extends Component {
         }
     };
 
-    _renderItem(props) {
-        let _this = this;
-        let item = props.item;
-        let {navigation} = _this.props;
-        return (
-            <TouchableOpacity onPress={() => {
-                navigation.dispatch(NavigationActions.navigate({
-                    routeName: item.routeName
-                }))
-            }}>
-                <View style={{flex: 1, paddingTop: 10, paddingHorizontal: 10}}>
-                    <Text style={{color: "#191919"}}>
-                        {item.title}
-                    </Text>
-                </View>
-            </TouchableOpacity>
-        )
-    }
-
     render() {
         let _this = this;
-        let pageList = [
-            {title: "文字转语音", routeName: "tts"}
-        ];
         return (
             <View style={styles.container}>
-                <FlatList data={pageList}
-                          renderItem={(item) => _this._renderItem(item)}
-                          onEndReachedThreshold={0.2}
-                />
+                <TextInput style={{color: "#888888"}}
+                           underlineColorAndroid="transparent"
+                           onChangeText={(text) => {
+                               this.setState({text: text})
+                           }}
+                           placeholder={"请输入文本"}/>
+                <TouchableOpacity onPress={() => {
+                    let {text} = this.state;
+                    console.warn(text)
+                    TTS.speak({text: text}, () => {
+                    })
+                }}>
+                    <Text>文字转语音</Text>
+                </TouchableOpacity>
             </View>
         )
     }
-
 
 }
 
@@ -96,4 +79,4 @@ const styles = StyleSheet.create({
 export default connect(
     (state) => ({}),
     (dispatch) => ({})
-)(example3)
+)(tts)

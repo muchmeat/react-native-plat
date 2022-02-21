@@ -5,6 +5,7 @@ import android.content.Context;
 
 import com.component.map.AGSMapManager;
 import com.component.map.AGSMapPackage;
+import com.component.tts.TTSPackage;
 import com.facebook.react.PackageList;
 import com.facebook.react.ReactApplication;
 import com.oblador.vectoricons.VectorIconsPackage;
@@ -33,6 +34,7 @@ public class MainApplication extends Application implements ReactApplication {
           // packages.add(new MyReactNativePackage());
 //            packages.add(new MPAndroidChartPackage());
             packages.add(new AGSMapPackage());
+            packages.add(new TTSPackage());
           return packages;
         }
 
